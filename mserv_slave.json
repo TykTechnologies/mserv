@@ -1,0 +1,32 @@
+{
+  "Mserv": {
+    "StorageTag": "default",
+    "StoreType": "Service",
+    "PluginDir": "/downloads",
+    "AllowHttpInvocation": false,
+    "HttpAddr": ":9090",
+    "GrpcAddr": ":9191",
+    "PublicKeyPath": "",
+    "MiddlewarePath": "/plugins"
+  },
+  "MongoStore": {
+    "default": {
+      "ConnStr": "mongodb://admin:finglebobcatflurplefray@159.89.48.218:27017/admin",
+      "UseTLS": false,
+      "Crypto": {
+        "Enabled": false,
+        "KeySets": {
+          "default": {
+            "PrivateKeyFile": "",
+            "PublicKeyFile": ""
+          }
+        }
+      }
+    }
+  },
+  "ServiceStore": {
+    "default": {
+      "ConnStr": "http://localhost:8989"
+    }
+  }
+}

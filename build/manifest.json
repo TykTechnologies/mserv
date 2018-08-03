@@ -1,0 +1,15 @@
+{
+  "file_list": [
+    "aws.so"
+  ],
+  "custom_middleware": {
+    "pre": [
+      {
+        "name": "CallAWS"
+      }
+    ],
+    "driver": "grpc"
+  },
+  "checksum": "",
+  "signature": ""
+}

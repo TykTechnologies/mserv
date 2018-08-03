@@ -1,0 +1,11 @@
+.DS_Store
+hack
+plugins
+tmp
+files/mserv-plugin*
+build/bundle.zip
+client/client
+mserv
+mserv.json
+*.so
+bundle.zip
