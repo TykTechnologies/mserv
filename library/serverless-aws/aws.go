@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/Sirupsen/logrus"
 	"github.com/TykTechnologies/mserv/coprocess/bindings/go"
 	"github.com/TykTechnologies/serverless/provider"
 	"github.com/TykTechnologies/serverless/provider/aws"
+	"github.com/sirupsen/logrus"
 	"os"
 )
 

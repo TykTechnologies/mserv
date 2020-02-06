@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/TykTechnologies/mserv/conf"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
 	utilStore "github.com/TykTechnologies/mserv/util/storage"
 	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 	"path"
 
 	"fmt"

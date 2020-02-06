@@ -45,6 +45,11 @@ const (
 	// ConfigDisableSSL is optional config value for disabling SSL support on custom endpoints
 	// Its default value is "false", to disable SSL set it to "true".
 	ConfigDisableSSL = "disable_ssl"
+
+	// ConfigV2Signing is an optional config value for signing requests with the v2 signature.
+	// Its default value is "false", to enable set to "true".
+	// This feature is useful for s3-compatible blob stores -- ie minio.
+	ConfigV2Signing = "v2_signing"
 )
 
 func init() {
@@ -95,7 +100,7 @@ func init() {
 		}
 
 		// Create a new client (s3 session)
-		client, endpoint, err := newS3Client(config)
+		client, endpoint, err := newS3Client(config, "")
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +123,7 @@ func init() {
 }
 
 // Attempts to create a session based on the information given.
-func newS3Client(config stow.Config) (client *s3.S3, endpoint string, err error) {
+func newS3Client(config stow.Config, region string) (client *s3.S3, endpoint string, err error) {
 	authType, _ := config.Config(ConfigAuthType)
 	accessKeyID, _ := config.Config(ConfigAccessKeyID)
 	secretKey, _ := config.Config(ConfigSecretKey)
@@ -135,8 +140,10 @@ func newS3Client(config stow.Config) (client *s3.S3, endpoint string, err error)
 		WithLogLevel(aws.LogOff).
 		WithSleepDelay(time.Sleep)
 
-	region, ok := config.Config(ConfigRegion)
-	if ok {
+	if region == "" {
+		region, _ = config.Config(ConfigRegion)
+	}
+	if region != "" {
 		awsConfig.WithRegion(region)
 	} else {
 		awsConfig.WithRegion("us-east-1")
@@ -146,7 +153,7 @@ func newS3Client(config stow.Config) (client *s3.S3, endpoint string, err error)
 		awsConfig.WithCredentials(credentials.NewStaticCredentials(accessKeyID, secretKey, ""))
 	}
 
-	endpoint, ok = config.Config(ConfigEndpoint)
+	endpoint, ok := config.Config(ConfigEndpoint)
 	if ok {
 		awsConfig.WithEndpoint(endpoint).
 			WithS3ForcePathStyle(true)
@@ -157,12 +164,20 @@ func newS3Client(config stow.Config) (client *s3.S3, endpoint string, err error)
 		awsConfig.WithDisableSSL(true)
 	}
 
-	sess := session.New(awsConfig)
+	sess, err := session.NewSession(awsConfig)
+	if err != nil {
+		return nil, "", err
+	}
 	if sess == nil {
 		return nil, "", errors.New("creating the S3 session")
 	}
 
 	s3Client := s3.New(sess)
+
+	usev2, ok := config.Config(ConfigV2Signing)
+	if ok && usev2 == "true" {
+		setv2Handlers(s3Client)
+	}
 
 	return s3Client, endpoint, nil
 }
