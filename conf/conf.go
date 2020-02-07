@@ -26,14 +26,17 @@ type FileStorage struct {
 	Local *LocalStore
 }
 
-// MservConf describes the settings required for a Momo instance
+// MservConf describes the settings required for an Mserv instance
 type MservConf struct {
 	StorageTag string
 	StoreType  StorageDriver
 
 	AllowHttpInvocation bool
 	HttpAddr            string
-	GrpcAddr            string
+	GrpcServer          struct {
+		Enabled bool
+		Address string
+	}
 
 	PublicKeyPath  string
 	MiddlewarePath string

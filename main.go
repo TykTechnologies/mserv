@@ -33,12 +33,15 @@ var httpServerAddr = ":8989"
 var grpcServer *grpc.Server
 
 func main() {
-	log.Info("http addr is: ", config.GetConf().Mserv.HttpAddr)
-	log.Info("grpc addr is: ", config.GetConf().Mserv.GrpcAddr)
+	conf := config.GetConf()
+	log.Info("http addr is: ", conf.Mserv.HttpAddr)
+	if conf.Mserv.GrpcServer.Enabled {
+		log.Info("grpc addr is: ", conf.Mserv.GrpcServer.Address)
+	}
 	overseer.Run(overseer.Config{
 		Program: prog,
 		Addresses: []string{
-			config.GetConf().Mserv.HttpAddr,
+			conf.Mserv.HttpAddr,
 		},
 		Debug: true,
 	})
@@ -64,8 +67,8 @@ func prog(state overseer.State) {
 		log.Fatal("store failed to init: ", err)
 	}
 
-	if config.GetConf().Mserv.HttpAddr != "" {
-		httpServerAddr = config.GetConf().Mserv.HttpAddr
+	if conf.Mserv.HttpAddr != "" {
+		httpServerAddr = conf.Mserv.HttpAddr
 	}
 
 	s := http_funcs.NewServer(httpServerAddr, store)
@@ -91,32 +94,35 @@ func prog(state overseer.State) {
 	}()
 
 	health.HttpStarted()
-	// First run, fetch all plugins so we can init properly
-	//log.Warning("SKIPPING PLUGIN FETCH AND INIT")
-	log.Warning("fetching latest plugin list")
-	alPLs, err := store.GetAllActive()
-	if err != nil {
-		log.Fatal(err)
+
+	if conf.Mserv.GrpcServer.Enabled {
+		// First run, fetch all plugins so we can init properly
+		//log.Warning("SKIPPING PLUGIN FETCH AND INIT")
+		log.Warning("fetching latest plugin list")
+		alPLs, err := store.GetAllActive()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Can be used on any MW list, here we fetch everything active
+		log.Warning("fetching plugin files")
+		err = fetchAndProcessPlugins(alPLs)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// start polling
+		go pollForActiveMWs(store)
+
+		grpcAddr := ":9898"
+		if conf.Mserv.GrpcServer.Address != "" {
+			grpcAddr = conf.Mserv.GrpcServer.Address
+		}
+
+		lis, _ := net.Listen("tcp", grpcAddr)
+		go startGRPCServer(lis, grpcAddr)
+		health.GrpcStarted()
 	}
-
-	// Can be used on any MW list, here we fetch everything active
-	log.Warning("fetching plugin files")
-	err = fetchAndProcessPlugins(alPLs)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// start polling
-	go pollForActiveMWs(store)
-
-	grpcAddr := ":9898"
-	if config.GetConf().Mserv.GrpcAddr != "" {
-		grpcAddr = config.GetConf().Mserv.GrpcAddr
-	}
-
-	lis, _ := net.Listen("tcp", grpcAddr)
-	go startGRPCServer(lis, grpcAddr)
-	health.GrpcStarted()
 
 	// Wait to quit
 	log.Info("Ready. Press Ctrl+C to end")

@@ -2,47 +2,49 @@ package http_funcs
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/jpillora/overseer"
-	"github.com/satori/go.uuid"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
+
+	"github.com/gorilla/mux"
+	"github.com/jpillora/overseer"
+	"github.com/satori/go.uuid"
 )
 
-func (h *HttpServ) ExtractBundleFromPost(w http.ResponseWriter, r *http.Request) (string, string) {
+func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 	// Save the file to disk
-	r.ParseMultipartForm(32 << 20)
-	file, handler, err := r.FormFile("uploadfile")
-	if err != nil {
-		h.HandleError(err, w, r)
-		return "", ""
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		return "", err
 	}
 
-	defer file.Close()
-
-	bundleName := uuid.NewV4().String()
-
-	dir := path.Join("./tmp", bundleName)
-	os.Mkdir(dir, os.ModePerm)
-
-	tmpFileLoc := path.Join(dir, handler.Filename)
-	f, err := os.OpenFile(tmpFileLoc, os.O_WRONLY|os.O_CREATE, 0666)
+	uploadedFile, _, err := r.FormFile("uploadfile")
 	if err != nil {
-		h.HandleError(err, w, r)
-		return "", ""
+		return "", err
 	}
 
-	defer f.Close()
+	defer uploadedFile.Close()
 
-	_, err = io.Copy(f, file)
-	if err != nil {
-		h.HandleError(err, w, r)
-		return "", ""
+	tmpDir := path.Join(os.TempDir(), "mserv-bundles")
+	if err := os.Mkdir(tmpDir, 0700); err != nil {
+		if !os.IsExist(err) {
+			return "", err
+		}
 	}
 
-	return tmpFileLoc, bundleName
+	tmpFile, err := ioutil.TempFile(tmpDir, "bundle-*.zip")
+	if err != nil {
+		return "", err
+	}
+	defer tmpFile.Close()
+
+	_, err = io.Copy(tmpFile, uploadedFile)
+	if err != nil {
+		return "", err
+	}
+
+	return tmpFile.Name(), nil
 }
 
 // API endpoints
@@ -53,13 +55,15 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpFileLoc, bundleName := h.ExtractBundleFromPost(w, r)
-	if tmpFileLoc == "" || bundleName == "" {
+	tmpFileLoc, err := h.ExtractBundleFromPost(r)
+	if err != nil {
+		h.HandleError(err, w, r)
 		return
 	}
 	log.Info("saved bundle to ", tmpFileLoc)
 
 	storeOnly := r.FormValue("store_only")
+	bundleName := uuid.NewV4().String()
 
 	if storeOnly != "" {
 		// This is a python or JS bundle, just proxy it to a store
@@ -71,6 +75,7 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 
 		ret := map[string]interface{}{"BundleID": mw.UID}
 		h.HandleOK(ret, w, r)
+		return
 	}
 
 	// This is a plugin bundle (.so) so we should process it differently
@@ -93,14 +98,16 @@ func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We do not want the generated bundle name since we already have a reference ID
-	tmpFileLoc, _ := h.ExtractBundleFromPost(w, r)
-	if tmpFileLoc == "" {
+	tmpFileLoc, err := h.ExtractBundleFromPost(r)
+	if err != nil {
+		h.HandleError(err, w, r)
 		return
 	}
 
 	mw, err := h.api.HandleUpdateBundle(tmpFileLoc, id)
 	if err != nil {
 		h.HandleError(err, w, r)
+		return
 	}
 
 	h.HandleOK(map[string]interface{}{"BundleID": mw.UID}, w, r)
@@ -117,6 +124,7 @@ func (h *HttpServ) DeleteMW(w http.ResponseWriter, r *http.Request) {
 	err := h.api.HandleDeleteBundle(id)
 	if err != nil {
 		h.HandleError(err, w, r)
+		return
 	}
 
 	h.HandleOK(map[string]interface{}{"BundleID": id}, w, r)

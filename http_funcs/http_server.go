@@ -47,7 +47,7 @@ func (h *HttpServ) Listen(m *mux.Router, l net.Listener) error {
 
 // Health endpoint
 func (h *HttpServ) HealthHandler(w http.ResponseWriter, r *http.Request) {
-	if health.Report.HTTPStarted && health.Report.GRPCStarted {
+	if health.Report.HTTPStarted || health.Report.GRPCStarted {
 		h.HandleOK(health.Report, w, r)
 		return
 	}

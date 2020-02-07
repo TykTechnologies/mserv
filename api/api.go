@@ -223,13 +223,12 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	}
 
 	// clean up
-	os.Remove(filePath)
+	if err := os.Remove(filePath); err != nil {
+		return nil, err
+	}
 
 	// Call a proc restart
 	log.Info("sending SIGUSR2")
-	//pid := syscall.Getpid()
-	//syscall.Kill(pid, syscall.SIGUSR2)
-	//log.Info("sent signal to ", pid)
 	overseer.Restart()
 	return mw, nil
 }
@@ -295,7 +294,9 @@ func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*stora
 	}
 
 	// clean up
-	os.Remove(filePath)
+	if err := os.Remove(filePath); err != nil {
+		return nil, err
+	}
 
 	return mw, nil
 }

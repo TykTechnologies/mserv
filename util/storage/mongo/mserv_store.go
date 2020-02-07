@@ -35,7 +35,7 @@ func (m *Store) GetAllActive() ([]*mservStorage.MW, error) {
 	defer s.Close()
 
 	mm := make([]mgo_models.MgoMW, 0)
-	if err := s.DB("").C(mservCol).Find(bson.M{"mw.active": true, "mw.downloadonly": false}).All(&mm); err != nil {
+	if err := s.DB("").C(mservCol).Find(bson.M{"mw.active": true}).All(&mm); err != nil {
 		return nil, err
 	}
 
