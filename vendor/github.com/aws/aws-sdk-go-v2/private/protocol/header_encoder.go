@@ -3,7 +3,6 @@ package protocol
 import (
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 // HeaderMapEncoder builds a map valu
@@ -24,9 +23,6 @@ func (e *HeaderMapEncoder) MapSetValue(k string, v ValueMarshaler) {
 		e.Err = err
 		return
 	}
-
-	k = strings.TrimSpace(k)
-	str = strings.TrimSpace(str)
 
 	if len(e.Prefix) > 0 {
 		k = e.Prefix + k

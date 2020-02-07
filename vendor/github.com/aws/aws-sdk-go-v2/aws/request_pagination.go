@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"context"
 	"sync/atomic"
 
 	"github.com/aws/aws-sdk-go-v2/internal/awsutil"
@@ -32,7 +31,7 @@ type Pager struct {
 	//
 	// NewRequest should always be built from the same API operations. It is
 	// undefined if different API operations are returned on subsequent calls.
-	NewRequest func(context.Context) (*Request, error)
+	NewRequest func() (*Request, error)
 
 	started    bool
 	nextTokens []interface{}
@@ -70,12 +69,12 @@ func (p *Pager) CurrentPage() interface{} {
 // to be cast to the API operation's output type.
 //
 // Use the Err method to determine if an error occurred if Page returns false.
-func (p *Pager) Next(ctx context.Context) bool {
+func (p *Pager) Next() bool {
 	if !p.hasNextPage() {
 		return false
 	}
 
-	req, err := p.NewRequest(ctx)
+	req, err := p.NewRequest()
 	if err != nil {
 		p.err = err
 		return false
@@ -137,7 +136,7 @@ func (r *Request) nextPageTokens() []interface{} {
 		}
 	}
 
-	var tokens []interface{}
+	tokens := []interface{}{}
 	tokenAdded := false
 	for _, outToken := range r.Operation.OutputTokens {
 		vs, _ := awsutil.ValuesAtPath(r.Data, outToken)

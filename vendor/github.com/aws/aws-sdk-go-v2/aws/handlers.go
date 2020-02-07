@@ -18,7 +18,6 @@ type Handlers struct {
 	UnmarshalError   HandlerList
 	Retry            HandlerList
 	AfterRetry       HandlerList
-	CompleteAttempt  HandlerList
 	Complete         HandlerList
 }
 
@@ -35,7 +34,6 @@ func (h *Handlers) Copy() Handlers {
 		UnmarshalMeta:    h.UnmarshalMeta.copy(),
 		Retry:            h.Retry.copy(),
 		AfterRetry:       h.AfterRetry.copy(),
-		CompleteAttempt:  h.CompleteAttempt.copy(),
 		Complete:         h.Complete.copy(),
 	}
 }
@@ -52,7 +50,6 @@ func (h *Handlers) Clear() {
 	h.ValidateResponse.Clear()
 	h.Retry.Clear()
 	h.AfterRetry.Clear()
-	h.CompleteAttempt.Clear()
 	h.Complete.Clear()
 }
 
@@ -168,21 +165,6 @@ func (l *HandlerList) SwapNamed(n NamedHandler) (swapped bool) {
 	for i := 0; i < len(l.list); i++ {
 		if l.list[i].Name == n.Name {
 			l.list[i].Fn = n.Fn
-			swapped = true
-		}
-	}
-
-	return swapped
-}
-
-// Swap will swap out all handlers matching the name passed in. The matched
-// handlers will be swapped in. True is returned if the handlers were swapped.
-func (l *HandlerList) Swap(name string, replace NamedHandler) bool {
-	var swapped bool
-
-	for i := 0; i < len(l.list); i++ {
-		if l.list[i].Name == name {
-			l.list[i] = replace
 			swapped = true
 		}
 	}

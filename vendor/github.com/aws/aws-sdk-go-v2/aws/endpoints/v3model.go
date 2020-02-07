@@ -53,9 +53,8 @@ type partition struct {
 
 func (p partition) Partition() Partition {
 	return Partition{
-		dnsSuffix: p.DNSSuffix,
-		id:        p.ID,
-		p:         &p,
+		id: p.ID,
+		p:  &p,
 	}
 }
 
@@ -74,34 +73,21 @@ func (p partition) canResolveEndpoint(service, region string, strictMatch bool) 
 	return p.RegionRegex.MatchString(region)
 }
 
-var allowEmptyRegion = map[string]struct{}{
-	"ec2metadata": {},
-}
-
-func serviceRequiresRegion(service string) bool {
-	_, allowed := allowEmptyRegion[service]
-	return !allowed
-}
-
 func (p partition) EndpointFor(service, region string, opts ResolveOptions) (resolved aws.Endpoint, err error) {
 	s, hasService := p.Services[service]
-	if len(service) == 0 || (!hasService && opts.StrictMatching) {
+	if !hasService && opts.StrictMatching {
 		// Only return error if the resolver will not fallback to creating
 		// endpoint based on service endpoint ID passed in.
 		return resolved, NewUnknownServiceError(p.ID, service, serviceList(p.Services))
 	}
 
-	if len(region) == 0 && !serviceRequiresRegion(service) && len(s.PartitionEndpoint) != 0 {
-		region = s.PartitionEndpoint
-	}
-
 	e, hasEndpoint := s.endpointForRegion(region)
-	if len(region) == 0 || (!hasEndpoint && opts.StrictMatching) {
+	if !hasEndpoint && opts.StrictMatching {
 		return resolved, NewUnknownEndpointError(p.ID, service, region, endpointList(s.Endpoints))
 	}
 
 	defs := []endpoint{p.Defaults, s.Defaults}
-	return e.resolve(service, p.ID, region, p.DNSSuffix, defs, opts), nil
+	return e.resolve(service, region, p.DNSSuffix, defs, opts), nil
 }
 
 func serviceList(ss services) []string {
@@ -213,7 +199,7 @@ func getByPriority(s []string, p []string, def string) string {
 	return s[0]
 }
 
-func (e endpoint) resolve(service, parittionID, region, dnsSuffix string, defs []endpoint, opts ResolveOptions) aws.Endpoint {
+func (e endpoint) resolve(service, region, dnsSuffix string, defs []endpoint, opts ResolveOptions) aws.Endpoint {
 	var merged endpoint
 	for _, def := range defs {
 		merged.mergeIn(def)
@@ -253,7 +239,6 @@ func (e endpoint) resolve(service, parittionID, region, dnsSuffix string, defs [
 
 	return aws.Endpoint{
 		URL:                u,
-		PartitionID:        parittionID,
 		SigningRegion:      signingRegion,
 		SigningName:        signingName,
 		SigningNameDerived: signingNameDerived,
