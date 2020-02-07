@@ -35,9 +35,6 @@ type Endpoint struct {
 	// The URL of the endpoint.
 	URL string
 
-	// The endpoint partition
-	PartitionID string
-
 	// The service name that should be used for signing the requests to the
 	// endpoint.
 	SigningName string

@@ -1,10 +1,8 @@
 package external
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 )
@@ -39,8 +37,6 @@ const (
 	AWSConfigFileEnvVar = "AWS_CONFIG_FILE"
 
 	AWSCustomCABundleEnvVar = "AWS_CA_BUNDLE"
-
-	S3UseARNRegionEnvVar = "AWS_S3_USE_ARN_REGION"
 )
 
 var (
@@ -77,7 +73,7 @@ type EnvConfig struct {
 	//
 	//	# Secret Access Key
 	//	AWS_SECRET_ACCESS_KEY=SECRET
-	//	AWS_SECRET_KEY=SECRET # only read if AWS_SECRET_ACCESS_KEY is not set.
+	//	AWS_SECRET_KEY=SECRET=SECRET # only read if AWS_SECRET_ACCESS_KEY is not set.
 	//
 	//	# Session Token
 	//	AWS_SESSION_TOKEN=TOKEN
@@ -138,12 +134,6 @@ type EnvConfig struct {
 	//
 	//  AWS_CA_BUNDLE=$HOME/my_custom_ca_bundle
 	CustomCABundle string
-
-	// Specifies if the S3 service should allow ARNs to direct the region
-	// the client's requests are sent to.
-	//
-	// AWS_S3_USE_ARN_REGION=true
-	S3UseARNRegion *bool
 }
 
 // LoadEnvConfig reads configuration values from the OS's environment variables.
@@ -177,24 +167,6 @@ func NewEnvConfig() (EnvConfig, error) {
 	cfg.SharedConfigFile = os.Getenv(AWSConfigFileEnvVar)
 
 	cfg.CustomCABundle = os.Getenv(AWSCustomCABundleEnvVar)
-
-	s3UseARNRegion := os.Getenv(S3UseARNRegionEnvVar)
-	if len(s3UseARNRegion) != 0 {
-		var v bool
-
-		switch {
-		case strings.EqualFold(s3UseARNRegion, "false"):
-			v = false
-		case strings.EqualFold(s3UseARNRegion, "true"):
-			v = true
-		default:
-			return cfg, fmt.Errorf(
-				"invalid value for environment variable, %s=%s, need true or false",
-				S3UseARNRegionEnvVar, s3UseARNRegion)
-		}
-
-		cfg.S3UseARNRegion = &v
-	}
 
 	return cfg, nil
 }
@@ -252,16 +224,6 @@ func (c EnvConfig) GetCustomCABundle() ([]byte, error) {
 	}
 
 	return ioutil.ReadFile(c.CustomCABundle)
-}
-
-// GetS3UseARNRegion returns whether to allow ARNs to direct the region
-// the S3 client's requests are sent to.
-func (c EnvConfig) GetS3UseARNRegion() (value, ok bool, err error) {
-	if c.S3UseARNRegion == nil {
-		return false, false, nil
-	}
-
-	return *c.S3UseARNRegion, true, nil
 }
 
 func setFromEnvVal(dst *string, keys []string) {

@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/aws/aws-sdk-go-v2/private/protocol"
 )
 
 // UnmarshalXML deserializes an xml.Decoder into the container v. V
@@ -221,7 +219,7 @@ func parseMapEntry(r reflect.Value, node *XMLNode, tag reflect.StructTag) error 
 	return nil
 }
 
-// parseScalar deserializes an XMLNode value into a concrete type based on the
+// parseScaller deserializes an XMLNode value into a concrete type based on the
 // interface type of r.
 //
 // Error is returned if the deserialization fails due to invalid type conversion,
@@ -267,12 +265,8 @@ func parseScalar(r reflect.Value, node *XMLNode, tag reflect.StructTag) error {
 		}
 		r.Set(reflect.ValueOf(v))
 	case time.Time:
-		format := tag.Get("timestampFormat")
-		if len(format) == 0 {
-			format = protocol.ISO8601TimeFormatName
-		}
-
-		t, err := protocol.ParseTime(format, node.Text)
+		const ISO8601UTC = "2006-01-02T15:04:05Z"
+		t, err := time.Parse(ISO8601UTC, node.Text)
 		if err != nil {
 			return err
 		}

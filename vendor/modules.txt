@@ -15,8 +15,9 @@ github.com/TykTechnologies/tyk/user
 github.com/agext/levenshtein
 # github.com/apparentlymart/go-textseg v1.0.0
 github.com/apparentlymart/go-textseg/textseg
-# github.com/aws/aws-sdk-go v1.25.3
+# github.com/aws/aws-sdk-go v1.28.11
 github.com/aws/aws-sdk-go/aws
+github.com/aws/aws-sdk-go/aws/arn
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
 github.com/aws/aws-sdk-go/aws/client
@@ -41,6 +42,7 @@ github.com/aws/aws-sdk-go/internal/sdkmath
 github.com/aws/aws-sdk-go/internal/sdkrand
 github.com/aws/aws-sdk-go/internal/sdkuri
 github.com/aws/aws-sdk-go/internal/shareddefaults
+github.com/aws/aws-sdk-go/internal/strings
 github.com/aws/aws-sdk-go/private/protocol
 github.com/aws/aws-sdk-go/private/protocol/eventstream
 github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi
@@ -51,11 +53,12 @@ github.com/aws/aws-sdk-go/private/protocol/rest
 github.com/aws/aws-sdk-go/private/protocol/restxml
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3
+github.com/aws/aws-sdk-go/service/s3/internal/arn
 github.com/aws/aws-sdk-go/service/s3/s3iface
 github.com/aws/aws-sdk-go/service/s3/s3manager
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
-# github.com/aws/aws-sdk-go-v2 v0.19.0
+# github.com/aws/aws-sdk-go-v2 v0.7.0
 github.com/aws/aws-sdk-go-v2/aws
 github.com/aws/aws-sdk-go-v2/aws/awserr
 github.com/aws/aws-sdk-go-v2/aws/defaults
@@ -117,7 +120,7 @@ github.com/hashicorp/terraform/helper/didyoumean
 github.com/hashicorp/terraform/tfdiags
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
-# github.com/jpillora/overseer v0.0.0-20180519165803-9891188db5a5
+# github.com/jpillora/overseer v0.0.0-20191216115108-e26c3c66567f
 github.com/jpillora/overseer
 github.com/jpillora/overseer/fetcher
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0

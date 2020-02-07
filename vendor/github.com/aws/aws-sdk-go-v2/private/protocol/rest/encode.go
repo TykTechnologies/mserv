@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/private/protocol"
 )
@@ -75,8 +74,6 @@ func (e *Encoder) SetValue(t protocol.Target, k string, v protocol.ValueMarshale
 
 	switch t {
 	case protocol.HeaderTarget:
-		k = strings.TrimSpace(k)
-		str = strings.TrimSpace(str)
 		e.header.Set(k, str)
 	case protocol.PathTarget:
 		e.path.ReplaceElement(k, str)

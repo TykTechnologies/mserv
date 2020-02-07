@@ -82,12 +82,9 @@ func (ps Partitions) ForPartition(id string) (Partition, bool) {
 // A Partition provides the ability to enumerate the partition's regions
 // and services.
 type Partition struct {
-	id, dnsSuffix string
-	p             *partition
+	id string
+	p  *partition
 }
-
-// DNSSuffix returns the base domain name of the partition.
-func (p Partition) DNSSuffix() string { return p.dnsSuffix }
 
 // ID returns the identifier of the partition.
 func (p Partition) ID() string { return p.id }

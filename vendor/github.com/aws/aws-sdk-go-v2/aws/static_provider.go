@@ -1,8 +1,6 @@
 package aws
 
 import (
-	"context"
-
 	"github.com/aws/aws-sdk-go-v2/aws/awserr"
 )
 
@@ -33,7 +31,7 @@ func NewStaticCredentialsProvider(key, secret, session string) StaticCredentials
 }
 
 // Retrieve returns the credentials or error if the credentials are invalid.
-func (s StaticCredentialsProvider) Retrieve(ctx context.Context) (Credentials, error) {
+func (s StaticCredentialsProvider) Retrieve() (Credentials, error) {
 	v := s.Value
 	if v.AccessKeyID == "" || v.SecretAccessKey == "" {
 		return Credentials{Source: StaticCredentialsProviderName}, ErrStaticCredentialsEmpty

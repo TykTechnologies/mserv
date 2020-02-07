@@ -2,7 +2,6 @@ package ec2rolecreds
 
 import (
 	"bufio"
-	"context"
 	"encoding/json"
 	"fmt"
 	"path"
@@ -31,7 +30,7 @@ type Provider struct {
 	aws.SafeCredentialsProvider
 
 	// Required EC2Metadata client to use when connecting to EC2 metadata service.
-	Client *ec2metadata.Client
+	Client *ec2metadata.EC2Metadata
 
 	// ExpiryWindow will allow the credentials to trigger refreshing prior to
 	// the credentials actually expiring. This is beneficial so race conditions
@@ -47,7 +46,7 @@ type Provider struct {
 
 // NewProvider returns an initialized Provider value configured to retrieve
 // credentials from EC2 Instance Metadata service.
-func NewProvider(client *ec2metadata.Client) *Provider {
+func NewProvider(client *ec2metadata.EC2Metadata) *Provider {
 	p := &Provider{
 		Client: client,
 	}
@@ -59,8 +58,8 @@ func NewProvider(client *ec2metadata.Client) *Provider {
 // Retrieve retrieves credentials from the EC2 service.
 // Error will be returned if the request fails, or unable to extract
 // the desired credentials.
-func (p *Provider) retrieveFn(ctx context.Context) (aws.Credentials, error) {
-	credsList, err := requestCredList(ctx, p.Client)
+func (p *Provider) retrieveFn() (aws.Credentials, error) {
+	credsList, err := requestCredList(p.Client)
 	if err != nil {
 		return aws.Credentials{}, err
 	}
@@ -71,7 +70,7 @@ func (p *Provider) retrieveFn(ctx context.Context) (aws.Credentials, error) {
 	}
 	credsName := credsList[0]
 
-	roleCreds, err := requestCred(ctx, p.Client, credsName)
+	roleCreds, err := requestCred(p.Client, credsName)
 	if err != nil {
 		return aws.Credentials{}, err
 	}
@@ -103,12 +102,12 @@ type ec2RoleCredRespBody struct {
 	Message string
 }
 
-const iamSecurityCredsPath = "/iam/security-credentials/"
+const iamSecurityCredsPath = "/iam/security-credentials"
 
 // requestCredList requests a list of credentials from the EC2 service.
 // If there are no credentials, or there is an error making or receiving the request
-func requestCredList(ctx context.Context, client *ec2metadata.Client) ([]string, error) {
-	resp, err := client.GetMetadata(ctx, iamSecurityCredsPath)
+func requestCredList(client *ec2metadata.EC2Metadata) ([]string, error) {
+	resp, err := client.GetMetadata(iamSecurityCredsPath)
 	if err != nil {
 		return nil, awserr.New("EC2RoleRequestError", "no EC2 instance role found", err)
 	}
@@ -130,8 +129,8 @@ func requestCredList(ctx context.Context, client *ec2metadata.Client) ([]string,
 //
 // If the credentials cannot be found, or there is an error reading the response
 // and error will be returned.
-func requestCred(ctx context.Context, client *ec2metadata.Client, credsName string) (ec2RoleCredRespBody, error) {
-	resp, err := client.GetMetadata(ctx, path.Join(iamSecurityCredsPath, credsName))
+func requestCred(client *ec2metadata.EC2Metadata, credsName string) (ec2RoleCredRespBody, error) {
+	resp, err := client.GetMetadata(path.Join(iamSecurityCredsPath, credsName))
 	if err != nil {
 		return ec2RoleCredRespBody{},
 			awserr.New("EC2RoleRequestError",

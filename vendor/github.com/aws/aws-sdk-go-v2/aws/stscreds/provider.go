@@ -61,7 +61,7 @@ role's credentials need to be refreshed.
 
 The StdinTokenProvider function is available to prompt on stdin to retrieve
 the MFA token code from the user. You can also implement custom prompts by
-satisfying the TokenProvider function signature.
+satisfing the TokenProvider function signature.
 
 Using StdinTokenProvider with multiple AssumeRoleProviders, or Credentials will
 have undesirable results as the StdinTokenProvider will not be synchronized. A
@@ -82,7 +82,6 @@ single Credentials with an AssumeRoleProvider can be shared safely.
 package stscreds
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -210,7 +209,7 @@ func NewAssumeRoleProvider(client AssumeRoler, roleARN string) *AssumeRoleProvid
 }
 
 // Retrieve generates a new set of temporary credentials using STS.
-func (p *AssumeRoleProvider) retrieveFn(ctx context.Context) (aws.Credentials, error) {
+func (p *AssumeRoleProvider) retrieveFn() (aws.Credentials, error) {
 	// Apply defaults where parameters are not set.
 	if len(p.RoleSessionName) == 0 {
 		// Try to work out a role name that will hopefully end up unique.
@@ -248,7 +247,7 @@ func (p *AssumeRoleProvider) retrieveFn(ctx context.Context) (aws.Credentials, e
 	}
 
 	req := p.Client.AssumeRoleRequest(input)
-	resp, err := req.Send(ctx)
+	resp, err := req.Send()
 	if err != nil {
 		return aws.Credentials{Source: ProviderName}, err
 	}

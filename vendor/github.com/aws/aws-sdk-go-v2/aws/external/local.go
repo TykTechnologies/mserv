@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 var lookupHostFn = net.LookupHost
@@ -19,10 +21,6 @@ func isLoopbackHost(host string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if len(addrs) == 0 {
-		return false, fmt.Errorf("no addrs found for host, %s", host)
-	}
-
 	for _, addr := range addrs {
 		if !net.ParseIP(addr).IsLoopback() {
 			return false, nil
@@ -38,7 +36,7 @@ func validateLocalURL(v string) error {
 		return err
 	}
 
-	host := u.Hostname()
+	host := aws.URLHostname(u)
 	if len(host) == 0 {
 		return fmt.Errorf("unable to parse host from local HTTP cred provider URL")
 	} else if isLoopback, err := isLoopbackHost(host); err != nil {
