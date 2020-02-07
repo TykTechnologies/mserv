@@ -25,8 +25,8 @@ func main() {
 	session := user.SessionState{}
 	apiDef := &apidef.APIDefinition{
 		APIID: "1",
-		Auth: apidef.Auth{
-			AuthHeaderName: "Authorization",
+		AuthConfigs: map[string]apidef.AuthConfig{
+			"auth": {AuthHeaderName: "Authorization"},
 		},
 		ConfigData: map[string]interface{}{
 			"func_name": "helloWorld",
