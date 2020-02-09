@@ -12,9 +12,9 @@ require (
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/franela/goblin v0.0.0-20200105215937-c9ffbefa60db // indirect
 	github.com/franela/goreq v0.0.0-20171204163338-bcd34c9993f8 // indirect
+	github.com/go-openapi/runtime v0.19.11
 	github.com/golang/protobuf v1.3.3
-	github.com/gorilla/context v1.1.1 // indirect
-	github.com/gorilla/mux v0.0.0-20160920230813-757bef944d0f
+	github.com/gorilla/mux v1.7.3
 	github.com/graymeta/stow v0.2.4
 	github.com/hashicorp/terraform v0.12.20 // indirect
 	github.com/jpillora/overseer v0.0.0-20191216115108-e26c3c66567f
@@ -28,6 +28,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pmylund/go-cache v2.1.0+incompatible // indirect
+	github.com/rs/cors v1.7.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/afero v1.2.2 // indirect
