@@ -11,7 +11,13 @@ import (
 	"time"
 )
 
-// Test endpoints
+// swagger:route POST /execute/{name} invocation invoke
+// Invokes a middleware by {name}.
+// Expects a coprocess.Object encoded as JSON in the request body and returns the result in the same way.
+//
+// Responses:
+//   200: invocationResponse
+//   500: genericErrorResponse
 func (h *HttpServ) Execute(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
