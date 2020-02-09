@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/TykTechnologies/mserv/conf"
+	_ "github.com/TykTechnologies/mserv/doc"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
 	utilStore "github.com/TykTechnologies/mserv/util/storage"

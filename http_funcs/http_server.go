@@ -8,6 +8,8 @@ import (
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+
 	"net"
 	"net/http"
 	"time"
@@ -45,7 +47,12 @@ func (h *HttpServ) Listen(m *mux.Router, l net.Listener) error {
 	return nil
 }
 
-// Health endpoint
+// swagger:route GET /health system health
+// Query health status of Mserv service.
+//
+// Responses:
+//   200: healthResponse
+//   500: healthResponse
 func (h *HttpServ) HealthHandler(w http.ResponseWriter, r *http.Request) {
 	if health.Report.HTTPStarted || health.Report.GRPCStarted {
 		h.HandleOK(health.Report, w, r)
@@ -82,4 +89,10 @@ func (h *HttpServ) writeToClient(w http.ResponseWriter, r *http.Request, payload
 	}
 
 	w.Write(js)
+}
+
+func setupGlobalMiddleware(handler http.Handler) http.Handler {
+	handleCORS := cors.Default().Handler
+
+	return handleCORS(handler)
 }

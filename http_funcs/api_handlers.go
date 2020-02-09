@@ -47,13 +47,15 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 	return tmpFile.Name(), nil
 }
 
-// API endpoints
+// swagger:route POST /api/mw mw mwAdd
+// Adds a new middleware. If `store_only` field is true it will only be available for download.
+// Expects a file bundle in `uploadfile` form field.
+//
+// Responses:
+//   200: mwIDResponse
+//   500: genericErrorResponse
 func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 	apiID := r.FormValue("api_id")
-	if apiID == "" {
-		h.HandleError(fmt.Errorf("api_id must be specified"), w, r)
-		return
-	}
 
 	tmpFileLoc, err := h.ExtractBundleFromPost(r)
 	if err != nil {
@@ -89,6 +91,13 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 	h.HandleOK(ret, w, r)
 }
 
+// swagger:route PUT /api/mw/{id} mw mwUpdate
+// Updates a middleware specified by {id}.
+// Expects a file bundle in `uploadfile` form field.
+//
+// Responses:
+//   200: mwIDResponse
+//   500: genericErrorResponse
 func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -113,6 +122,12 @@ func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 	h.HandleOK(map[string]interface{}{"BundleID": mw.UID}, w, r)
 }
 
+// swagger:route DELETE /api/mw/{id} mw mwDelete
+// Deletes a middleware specified by {id}.
+//
+// Responses:
+//   200: mwIDResponse
+//   500: genericErrorResponse
 func (h *HttpServ) DeleteMW(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -132,6 +147,12 @@ func (h *HttpServ) DeleteMW(w http.ResponseWriter, r *http.Request) {
 	overseer.Restart()
 }
 
+// swagger:route GET /api/mw/{id} mw mwFetch
+// Fetches a middleware specified by {id}.
+//
+// Responses:
+//   200: mwResponse
+//   500: genericErrorResponse
 func (h *HttpServ) FetchMW(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -149,6 +170,15 @@ func (h *HttpServ) FetchMW(w http.ResponseWriter, r *http.Request) {
 	h.HandleOK(dat, w, r)
 }
 
+// swagger:route GET /api/mw/bundle/{id} mw mwFetchBundle
+// Fetches a middleware bundle file specified by {id}.
+//
+// Produces:
+// - application/octet-stream
+//
+// Responses:
+//   200: mwBundleResponse
+//   500: genericErrorResponse
 func (h *HttpServ) FetchBundleFile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -173,6 +203,12 @@ func (h *HttpServ) FetchBundleFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, bf)
 }
 
+// swagger:route GET /api/mw/master/all mw mwListAll
+// Lists all middleware.
+//
+// Responses:
+//   200: mwListResponse
+//   500: genericErrorResponse
 func (h *HttpServ) FetchAllActiveMW(w http.ResponseWriter, r *http.Request) {
 	mws, err := h.api.GetAllActiveMW()
 	if err != nil {
