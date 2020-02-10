@@ -12,7 +12,11 @@ require (
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/franela/goblin v0.0.0-20200105215937-c9ffbefa60db // indirect
 	github.com/franela/goreq v0.0.0-20171204163338-bcd34c9993f8 // indirect
+	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/runtime v0.19.11
+	github.com/go-openapi/strfmt v0.19.3
+	github.com/go-openapi/swag v0.19.5
+	github.com/go-openapi/validate v0.19.3
 	github.com/golang/protobuf v1.3.3
 	github.com/gorilla/mux v1.7.3
 	github.com/graymeta/stow v0.2.4
@@ -23,6 +27,7 @@ require (
 	github.com/lonelycode/osin v0.0.0-20160423095202-da239c9dacb6 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/olekukonko/tablewriter v0.0.4
 	github.com/onsi/ginkgo v1.12.0 // indirect
 	github.com/onsi/gomega v1.9.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -45,6 +50,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
-	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
