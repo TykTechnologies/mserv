@@ -51,6 +51,9 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 // Adds a new middleware. If `store_only` field is true it will only be available for download.
 // Expects a file bundle in `uploadfile` form field.
 //
+// Security:
+//   api_key:
+//
 // Responses:
 //   200: mwIDResponse
 //   500: genericErrorResponse
@@ -67,7 +70,7 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 	storeOnly := r.FormValue("store_only")
 	bundleName := uuid.NewV4().String()
 
-	if storeOnly != "" {
+	if storeOnly == "true" {
 		// This is a python or JS bundle, just proxy it to a store
 		mw, err := h.api.StoreBundleOnly(tmpFileLoc, apiID, bundleName)
 		if err != nil {
@@ -94,6 +97,9 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 // swagger:route PUT /api/mw/{id} mw mwUpdate
 // Updates a middleware specified by {id}.
 // Expects a file bundle in `uploadfile` form field.
+//
+// Security:
+//   api_key:
 //
 // Responses:
 //   200: mwIDResponse
@@ -125,6 +131,9 @@ func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 // swagger:route DELETE /api/mw/{id} mw mwDelete
 // Deletes a middleware specified by {id}.
 //
+// Security:
+//   api_key:
+//
 // Responses:
 //   200: mwIDResponse
 //   500: genericErrorResponse
@@ -149,6 +158,9 @@ func (h *HttpServ) DeleteMW(w http.ResponseWriter, r *http.Request) {
 
 // swagger:route GET /api/mw/{id} mw mwFetch
 // Fetches a middleware specified by {id}.
+//
+// Security:
+//   api_key:
 //
 // Responses:
 //   200: mwResponse
@@ -175,6 +187,9 @@ func (h *HttpServ) FetchMW(w http.ResponseWriter, r *http.Request) {
 //
 // Produces:
 // - application/octet-stream
+//
+// Security:
+//   api_key:
 //
 // Responses:
 //   200: mwBundleResponse
@@ -205,6 +220,9 @@ func (h *HttpServ) FetchBundleFile(w http.ResponseWriter, r *http.Request) {
 
 // swagger:route GET /api/mw/master/all mw mwListAll
 // Lists all middleware.
+//
+// Security:
+//   api_key:
 //
 // Responses:
 //   200: mwListResponse

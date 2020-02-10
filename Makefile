@@ -2,7 +2,10 @@ check-swagger:
 	which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
 
 swagger: check-swagger
-	GO111MODULE=on go mod vendor && GO111MODULE=off swagger generate spec -o ./doc/swagger.yaml --scan-models
+	GO111MODULE=on go mod vendor && GO111MODULE=off swagger generate spec -o ./doc/swagger.yaml --scan-models -x mservclient -x vendor
 
 serve-swagger: check-swagger
 	swagger serve -F=swagger ./doc/swagger.yaml
+
+swagger-client: check-swagger
+	mkdir -p ./mservclient && swagger generate client -f ./doc/swagger.yaml -t ./mservclient

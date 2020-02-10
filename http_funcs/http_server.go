@@ -16,7 +16,7 @@ import (
 )
 
 var moduleName = "mserv.http"
-var log = logger.GetAndExcludeLoggerFromTrace(moduleName)
+var log = logger.GetLogger(moduleName)
 
 func NewServer(listenOn string, store storage.MservStore) *HttpServ {
 	return &HttpServ{

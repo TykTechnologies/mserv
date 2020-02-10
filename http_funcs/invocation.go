@@ -15,6 +15,9 @@ import (
 // Invokes a middleware by {name}.
 // Expects a coprocess.Object encoded as JSON in the request body and returns the result in the same way.
 //
+// Security:
+//   api_key:
+//
 // Responses:
 //   200: invocationResponse
 //   500: genericErrorResponse
