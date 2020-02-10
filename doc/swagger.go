@@ -33,12 +33,14 @@ import (
 	"github.com/go-openapi/runtime"
 )
 
+// Generic error specified by `Status` and `Error` fields
 // swagger:response genericErrorResponse
 type GenericErrorResponse struct {
 	// in: body
 	Body models.Payload
 }
 
+// Health status response
 // swagger:response healthResponse
 type HealthResponse struct {
 	// in: body
@@ -48,6 +50,7 @@ type HealthResponse struct {
 	}
 }
 
+// Middleware invocation response
 // swagger:response invocationResponse
 type InvocationResponse struct {
 	// in: body
@@ -57,6 +60,7 @@ type InvocationResponse struct {
 	}
 }
 
+// Response that only includes the ID of the middleware as `BundleID` in the `Payload`
 // swagger:response mwIDResponse
 type MiddlewareIDResponse struct {
 	// in: body
@@ -68,6 +72,7 @@ type MiddlewareIDResponse struct {
 	}
 }
 
+// Full middleware response in the `Payload`
 // swagger:response mwResponse
 type MiddlewareResponse struct {
 	// in: body
@@ -77,6 +82,7 @@ type MiddlewareResponse struct {
 	}
 }
 
+// List of full middleware representations in the `Payload`
 // swagger:response mwListResponse
 type MiddlewareListResponse struct {
 	// in: body
@@ -86,6 +92,7 @@ type MiddlewareListResponse struct {
 	}
 }
 
+// Middleware bundle as a file
 // swagger:response mwBundleResponse
 type MiddlewareBundleResponse struct {
 	// in: body
@@ -118,7 +125,7 @@ type AddMiddlewareParameters struct {
 	// in: query
 	StoreOnly bool `json:"store_only"`
 	// in: query
-	ApiID string `json:"api_id"`
+	APIID string `json:"api_id"`
 }
 
 // swagger:parameters mwUpdate
