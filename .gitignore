@@ -9,3 +9,5 @@ mserv
 mserv.json
 *.so
 bundle.zip
+mservctl
+

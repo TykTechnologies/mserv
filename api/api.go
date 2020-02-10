@@ -24,7 +24,7 @@ import (
 )
 
 var moduleName = "mserv.api"
-var log = logger.GetAndExcludeLoggerFromTrace(moduleName)
+var log = logger.GetLogger(moduleName)
 
 func NewAPI(store storage.MservStore) *API {
 	return &API{store: store}

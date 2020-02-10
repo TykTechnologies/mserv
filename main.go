@@ -28,7 +28,7 @@ import (
 )
 
 var moduleName = "mserv.main"
-var log = logger.GetAndExcludeLoggerFromTrace(moduleName)
+var log = logger.GetLogger(moduleName)
 
 var httpServerAddr = ":8989"
 var grpcServer *grpc.Server

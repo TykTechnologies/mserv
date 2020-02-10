@@ -1,16 +1,22 @@
 package slave
 
 import (
-	"github.com/TykTechnologies/mserv/models"
+	"encoding/json"
+
+	clientmodels "github.com/TykTechnologies/mserv/mservclient/models"
 	"github.com/TykTechnologies/mserv/storage"
 )
 
-type MWPayload struct {
-	models.BasePayload
-	Payload *storage.MW
-}
+func clientToStorageMW(clientMw *clientmodels.MW) (*storage.MW, error) {
+	marshalled, err := clientMw.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
 
-type AllActiveMWPayload struct {
-	models.BasePayload
-	Payload []*storage.MW
+	mw := &storage.MW{}
+	if err := json.Unmarshal(marshalled, mw); err != nil {
+		return nil, err
+	}
+
+	return mw, nil
 }

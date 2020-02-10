@@ -17,7 +17,7 @@ import (
 )
 
 var moduleName = "mserv.client"
-var log = logger.GetAndExcludeLoggerFromTrace(moduleName)
+var log = logger.GetLogger(moduleName)
 
 func main() {
 	hookName := "CallAWS"

@@ -8,7 +8,7 @@ import (
 )
 
 var moduleName = "mserv.coprocess.helpers"
-var log = logger.GetAndExcludeLoggerFromTrace(moduleName)
+var log = logger.GetLogger(moduleName)
 
 // ProtoMap is a helper function for maps with string slice values.
 func ProtoMap(inputMap map[string][]string) map[string]string {
@@ -100,11 +100,11 @@ func TykSessionState(session *coprocess.SessionState) *user.SessionState {
 		MetaData:                metadata,
 		Monitor:                 monitor,
 		EnableDetailedRecording: session.EnableDetailedRecording,
-		Tags:                session.Tags,
-		Alias:               session.Alias,
-		LastUpdated:         session.LastUpdated,
-		IdExtractorDeadline: session.IdExtractorDeadline,
-		SessionLifetime:     session.SessionLifetime,
+		Tags:                    session.Tags,
+		Alias:                   session.Alias,
+		LastUpdated:             session.LastUpdated,
+		IdExtractorDeadline:     session.IdExtractorDeadline,
+		SessionLifetime:         session.SessionLifetime,
 	}
 }
 
@@ -184,10 +184,10 @@ func ProtoSessionState(session *user.SessionState) *coprocess.SessionState {
 		Monitor:                 monitor,
 		Metadata:                metadata,
 		EnableDetailedRecording: session.EnableDetailedRecording,
-		Tags:                session.Tags,
-		Alias:               session.Alias,
-		LastUpdated:         session.LastUpdated,
-		IdExtractorDeadline: session.IdExtractorDeadline,
-		SessionLifetime:     session.SessionLifetime,
+		Tags:                    session.Tags,
+		Alias:                   session.Alias,
+		LastUpdated:             session.LastUpdated,
+		IdExtractorDeadline:     session.IdExtractorDeadline,
+		SessionLifetime:         session.SessionLifetime,
 	}
 }

@@ -21,7 +21,7 @@ import (
 )
 
 var moduleName = "mserv.bundle"
-var log = logger.GetAndExcludeLoggerFromTrace(moduleName)
+var log = logger.GetLogger(moduleName)
 
 // Bundle is the basic bundle data structure, it holds the bundle name and the data.
 type Bundle struct {

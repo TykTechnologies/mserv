@@ -3,34 +3,77 @@ package cmd
 import (
 	"fmt"
 
+	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
+	"github.com/TykTechnologies/mserv/mservclient/client/mw"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
 // fetchCmd represents the fetch command
 var fetchCmd = &cobra.Command{
 	Use:   "fetch",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Fetches a middleware record from mserv",
+	Long: `Fetches a middleware record by ID, e.g.:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("fetch called")
-	},
+$ mservctl fetch 13b0eb10-419f-40ef-838d-6d26bb2eeaa8`,
+	Args: cobra.ExactArgs(1),
+	Run:  fetchMiddleware,
 }
 
 func init() {
 	rootCmd.AddCommand(fetchCmd)
 
-	// Here you will define your flags and configuration settings.
+	fetchCmd.Flags().BoolP("functions", "f", false, "Show plugin functions")
+}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// fetchCmd.PersistentFlags().String("foo", "", "A help for foo")
+func fetchMiddleware(cmd *cobra.Command, args []string) {
+	params := mw.NewMwFetchParams().WithID(args[0])
+	resp, err := mservapi.Mw.MwFetch(params, defaultAuth())
+	if err != nil {
+		log.WithError(err).Error("Couldn't fetch middleware")
+		return
+	}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// fetchCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	showFuncs := cmd.Flag("functions").Value.String() == "true"
+
+	headers := []string{"ID", "Active", "Serve Only", "Last Update"}
+	if showFuncs {
+		headers = append(headers, "Function", "Type")
+	}
+
+	table := tablewriter.NewWriter(cmd.OutOrStdout())
+	table.SetHeader(headers)
+	table.SetBorder(false)
+	table.SetRowLine(false)
+	table.SetCenterSeparator("")
+	table.SetAutoMergeCells(false)
+	table.SetColumnSeparator("")
+	table.SetRowSeparator("")
+	table.SetHeaderAlignment(3)
+
+	mw := resp.GetPayload().Payload
+
+	row := []string{
+		mw.UID,
+		fmt.Sprintf("%v", mw.Active),
+		fmt.Sprintf("%v", mw.DownloadOnly),
+		mw.Added.String(),
+	}
+	table.Append(row)
+
+	if showFuncs {
+		for _, pl := range mw.Plugins {
+			plrow := []string{
+				"",
+				"",
+				"",
+				"",
+				pl.Name,
+				coprocess.HookType(pl.Type).String(),
+			}
+			table.Append(plrow)
+		}
+	}
+
+	table.Render()
 }
