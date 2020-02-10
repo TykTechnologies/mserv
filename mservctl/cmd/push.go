@@ -1,36 +1,47 @@
 package cmd
 
 import (
-	"fmt"
+	"os"
 
+	"github.com/TykTechnologies/mserv/mservclient/client/mw"
 	"github.com/spf13/cobra"
 )
 
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Pushes a middleware to mserv",
+	Long: `Uploads a bundle file created with tyk CLI to mserv, e.g.:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("push called")
-	},
+$ mservctl push /path/to/bundle.zip`,
+	Args: cobra.ExactArgs(1),
+	Run:  pushMiddleware,
 }
 
 func init() {
 	rootCmd.AddCommand(pushCmd)
 
-	// Here you will define your flags and configuration settings.
+	pushCmd.Flags().BoolP("storeonly", "s", false, "Don't process, just store it")
+	pushCmd.Flags().StringP("apiid", "a", "", "Optional API ID")
+}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// pushCmd.PersistentFlags().String("foo", "", "A help for foo")
+func pushMiddleware(cmd *cobra.Command, args []string) {
+	file, err := os.Open(args[0])
+	if err != nil {
+		log.WithError(err).Error("Couldn't open the bundle file")
+		return
+	}
+	defer file.Close()
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// pushCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	apiID := cmd.Flag("apiid").Value.String()
+	storeOnly := cmd.Flag("storeonly").Value.String() == "true"
+
+	params := mw.NewMwAddParams().WithUploadFile(file).WithAPIID(&apiID).WithStoreOnly(&storeOnly)
+	resp, err := mservapi.Mw.MwAdd(params, defaultAuth())
+	if err != nil {
+		log.WithError(err).Error("Couldn't push middleware")
+		return
+	}
+
+	cmd.Printf("Middleware uploaded successfully, ID: %s\n", resp.GetPayload().Payload.BundleID)
 }

@@ -52,7 +52,7 @@ type Config struct {
 var sConf *Config
 var moduleName = "mserv.config"
 var envPrefix = "MS"
-var log = logger.GetAndExcludeLoggerFromTrace(moduleName)
+var log = logger.GetLogger(moduleName)
 
 // GetConf will get the config data for the MServ server
 var GetConf = func() *Config {

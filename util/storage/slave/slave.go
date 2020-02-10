@@ -3,79 +3,42 @@ package slave
 import (
 	"errors"
 	"fmt"
+	"net/url"
+
+	"github.com/TykTechnologies/mserv/mservclient/client"
+	"github.com/TykTechnologies/mserv/mservclient/client/mw"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
-	"gopkg.in/resty.v1"
-	"strings"
+	"github.com/go-openapi/runtime"
+	httptransport "github.com/go-openapi/runtime/client"
+	"github.com/sirupsen/logrus"
 )
 
 var moduleName = "mserv.slave"
-var log = logger.GetAndExcludeLoggerFromTrace(moduleName)
-
-type endpoint string
-
-const (
-	healthEP    endpoint = "health"
-	getAll      endpoint = "api/mw/master/all"
-	getBundle   endpoint = "api/mw/{id}/bundle.zip"
-	mwOperation endpoint = "api/mw/{id}"
-	addMW       endpoint = "api/mw"
-)
-
-func (e *endpoint) StringWithID(id string) string {
-	return strings.Replace(e.String(), "{id}", id, -1)
-}
-
-func (e *endpoint) String() string {
-	return string(*e)
-}
+var log = logger.GetLogger(moduleName)
 
 func NewSlaveClient() (*Client, error) {
 	return &Client{}, nil
 }
 
 type Client struct {
-	tag  string
-	conf *StoreConf
+	tag      string
+	conf     *StoreConf
+	mservapi *client.Mserv
 }
 
-func (c *Client) EP(ep endpoint, ids ...string) string {
-	if len(ids) > 0 {
-		url := fmt.Sprintf("%s%s", c.conf.ConnStr, ep.StringWithID(ids[0]))
-		log.Warning(url)
-		return url
-	}
-
-	url := fmt.Sprintf("%s%s", c.conf.ConnStr, ep.String())
-	log.Warning(url)
-	return url
-}
-
-func (c *Client) secureRequest(req *resty.Request) {
-	if c.conf.Secret != "" {
-		req.Header.Add("authorization", c.conf.Secret)
-	}
+func (c *Client) defaultAuth() runtime.ClientAuthInfoWriter {
+	return httptransport.APIKeyAuth("X-Api-Key", "header", c.conf.Secret)
 }
 
 func (c *Client) GetMWByID(id string) (*storage.MW, error) {
-	res := &MWPayload{}
-	request := resty.R().
-		SetHeader("Content-Type", "application/json").
-		SetResult(res)
-
-	c.secureRequest(request)
-	resp, err := request.Get(c.EP(mwOperation, id))
-
+	params := mw.NewMwFetchParams().WithID(id)
+	resp, err := c.mservapi.Mw.MwFetch(params, c.defaultAuth())
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.StatusCode() != 200 {
-		log.Error("problem fetching data: ", resp.String())
-		return nil, fmt.Errorf("api returned non-200 code: %v", resp.StatusCode())
-	}
-
-	return res.Payload, err
+	return clientToStorageMW(resp.GetPayload().Payload)
 }
 
 func (c *Client) GetMWByApiID(ApiID string) (*storage.MW, error) {
@@ -83,24 +46,21 @@ func (c *Client) GetMWByApiID(ApiID string) (*storage.MW, error) {
 }
 
 func (c *Client) GetAllActive() ([]*storage.MW, error) {
-	res := &AllActiveMWPayload{}
-	request := resty.R().
-		SetHeader("Content-Type", "application/json").
-		SetResult(res)
-
-	c.secureRequest(request)
-	resp, err := request.Get(c.EP(getAll))
-
+	resp, err := c.mservapi.Mw.MwListAll(mw.NewMwListAllParams(), c.defaultAuth())
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.StatusCode() != 200 {
-		log.Error("problem fetching data: ", resp.String())
-		return nil, fmt.Errorf("api returned non-200 code: %v", resp.StatusCode())
+	mws := make([]*storage.MW, 0)
+	for _, mw := range resp.GetPayload().Payload {
+		stMW, err := clientToStorageMW(mw)
+		if err != nil {
+			return nil, err
+		}
+		mws = append(mws, stMW)
 	}
 
-	return res.Payload, err
+	return mws, nil
 }
 
 func (c *Client) CreateMW(mw *storage.MW) (string, error) {
@@ -123,6 +83,28 @@ func (c *Client) InitMservStore(tag string) error {
 	}
 
 	c.conf = cnf
+
+	endpoint, err := parseEndpoint(c.conf.ConnStr)
+	if err != nil {
+		return err
+	}
+
+	tr := httptransport.New(endpoint.Host, endpoint.Path, []string{endpoint.Scheme})
+	tr.SetLogger(log)
+	if log.Logger.GetLevel() == logrus.DebugLevel {
+		tr.SetDebug(true)
+	}
+
+	c.mservapi = client.New(tr, nil)
+
 	log.Info("initialising service store")
 	return nil
+}
+
+func parseEndpoint(endpoint string) (*url.URL, error) {
+	parsed, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	return parsed, nil
 }

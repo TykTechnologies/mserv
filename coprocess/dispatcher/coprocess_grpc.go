@@ -33,7 +33,7 @@ var grpcClient coprocess.DispatcherClient
 var GlobalDispatcher Dispatcher
 
 var moduleName = "mserv.grpc.dispatcher"
-var log = logger.GetAndExcludeLoggerFromTrace(moduleName)
+var log = logger.GetLogger(moduleName)
 
 var gRPCServer = "tcp://127.0.0.1:9898"
 
