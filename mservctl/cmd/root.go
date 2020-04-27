@@ -47,8 +47,10 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mservctl.yaml)")
 	rootCmd.PersistentFlags().StringP("endpoint", "e", "", "mserv endpoint")
 	rootCmd.PersistentFlags().StringP("token", "t", "", "mserv security token")
+	rootCmd.PersistentFlags().BoolP("insecure-tls", "k", false, "allow insecure TLS for mserv client")
 	viper.BindPFlag("endpoint", rootCmd.Flag("endpoint"))
 	viper.BindPFlag("token", rootCmd.Flag("token"))
+	viper.BindPFlag("insecure_tls", rootCmd.Flag("insecure-tls"))
 
 	viper.SetDefault("endpoint", "http://localhost:8989")
 }
@@ -84,7 +86,13 @@ func initMservApi() {
 		log.WithError(err).Fatal("Couldn't parse the mserv endpoint")
 	}
 
-	tr := httptransport.New(endpoint.Host, endpoint.Path, []string{endpoint.Scheme})
+	tlsOptions := httptransport.TLSClientOptions{InsecureSkipVerify: viper.GetBool("insecure_tls")}
+	tlsClient, err := httptransport.TLSClient(tlsOptions)
+	if err != nil {
+		log.WithError(err).Fatal("Couldn't create client with TLS options")
+	}
+
+	tr := httptransport.NewWithClient(endpoint.Host, endpoint.Path, []string{endpoint.Scheme}, tlsClient)
 	tr.SetLogger(log)
 	if log.Logger.GetLevel() == logrus.DebugLevel {
 		tr.SetDebug(true)
