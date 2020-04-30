@@ -71,13 +71,13 @@ jobs:
         with:
           name: mservctl.linux.amd64
           
-      - name: upload linux binary
+      - name: attach linux binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.draft-release.outputs.upload_url }}
-          asset_path: ./mservctl
+          asset_path: ./mservctl.linux.amd64
           asset_name: mservctl.linux.amd64
           asset_content_type: application/octet-stream
 
@@ -85,13 +85,13 @@ jobs:
         with:
           name: mservctl.macos.amd64
           
-      - name: upload macos binary
+      - name: attach macos binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.draft-release.outputs.upload_url }}
-          asset_path: ./mservctl
-          asset_name: mservctl.macos
+          asset_path: ./mservctl.macos.amd64
+          asset_name: mservctl.macos.amd64
           asset_content_type: application/octet-stream
 
