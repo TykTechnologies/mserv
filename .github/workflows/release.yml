@@ -91,7 +91,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.draft-release.outputs.upload_url }}
-          asset_path: ./mservctl/mservctl
+          asset_path: ./mservctl
           asset_name: mservctl.macos
           asset_content_type: application/octet-stream
 
