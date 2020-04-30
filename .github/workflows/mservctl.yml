@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - uses: actions/create-release@v1
-        id: draft_release
+        id: draft-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -47,7 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ release.steps.draft_release.outputs.upload_url }}
+          upload_url: ${{ jobs.release.steps.draft-release.outputs.upload_url }}
           asset_path: ./mservctl/mservctl
           asset_name: mservctl.linux.amd64
           asset_content_type: application/octet-stream
@@ -80,7 +80,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.draft_release.outputs.upload_url }}
+          upload_url: ${{ steps.draft-release.outputs.upload_url }}
           asset_path: ./mservctl/mservctl
           asset_name: mservctl.macos
           asset_content_type: application/octet-stream
