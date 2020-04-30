@@ -9,6 +9,22 @@ on:
       - wftest/*
 
 jobs:
+  release:
+    name: Draft release
+    runs-on: ubuntu-latest
+    needs: [ linux, macOS ]
+
+    steps:
+      - uses: actions/create-release@v1
+        id: draft-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+
+          
   linux:
     name: amd64 build
     runs-on: ubuntu-latest
@@ -25,11 +41,16 @@ jobs:
         run: |
           cd mservctl && go build -mod=vendor
 
-      - name: Upload
-        uses: actions/upload-artifact@v1
+      - name: upload linux binary
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: mservctl.linux.amd64
-          path: mservctl/mservctl
+          upload_url: ${{ release.steps.draft-release.outputs.upload_url }}
+          asset_path: ./mservctl/mservctl
+          asset_name: mservctl.linux.amd64
+          asset_content_type: application/octet-stream
 
   macOS:
     name: macos build
@@ -53,3 +74,13 @@ jobs:
           name: mservctl.macos
           path: mservctl/mservctl
   
+      - name: upload macos binary
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft-release.outputs.upload_url }}
+          asset_path: ./mservctl/mservctl
+          asset_name: mservctl.macos
+          asset_content_type: application/octet-stream
