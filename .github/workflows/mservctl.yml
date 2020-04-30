@@ -1,0 +1,57 @@
+# Build and push a docker image of the dashboard
+# deprecated aglio component not present
+
+name: mservctl
+
+on:
+  push:
+    branches:
+      - wftest/*
+
+jobs:
+  linux:
+    name: amd64 build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: checkout ${{ github.repository }}
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '1.13'
+
+      - name: Build
+        working_directory: mservctl 
+        run: |
+          go build -mod=vendor
+
+      - name: Upload
+        uses: actions/upload-artifact@v1
+        with:
+          name: mservctl.linux.amd64
+          path: mservctl/mservctl
+
+  macOS:
+    name: macos build
+    runs-on: macos-latest
+    
+    steps:
+      - name: checkout ${{ github.repository }}
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '1.13'
+
+      - name: Build
+        working_directory: mservctl 
+        run: |
+          go build -mod=vendor
+
+      - name: Upload
+        uses: actions/upload-artifact@v1
+        with:
+          name: mservctl.macos
+          path: mservctl/mservctl
+  
