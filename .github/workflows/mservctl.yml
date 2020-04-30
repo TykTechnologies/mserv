@@ -44,9 +44,8 @@ jobs:
           go-version: '1.13'
 
       - name: Build
-        working_directory: mservctl 
         run: |
-          go build -mod=vendor
+          cd mservctl && go build -mod=vendor
 
       - name: Upload
         uses: actions/upload-artifact@v1
