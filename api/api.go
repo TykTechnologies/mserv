@@ -3,9 +3,16 @@ package api
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/url"
+	"os"
+	"path"
+	"time"
+
 	"github.com/TykTechnologies/mserv/bundle"
-	"github.com/TykTechnologies/mserv/conf"
-	"github.com/TykTechnologies/mserv/coprocess/bindings/go"
+	config "github.com/TykTechnologies/mserv/conf"
+	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
 	"github.com/TykTechnologies/mserv/util/storage/errors"
@@ -13,14 +20,7 @@ import (
 	"github.com/graymeta/stow/local"
 	"github.com/graymeta/stow/s3"
 	"github.com/jpillora/overseer"
-	"github.com/satori/go.uuid"
-	"io"
-	"io/ioutil"
-	"net/url"
-	"os"
-	"path"
-	"path/filepath"
-	"time"
+	uuid "github.com/satori/go.uuid"
 )
 
 var moduleName = "mserv.api"
@@ -342,35 +342,49 @@ func (a *API) FetchAndServeBundleFile(mw *storage.MW) (string, error) {
 	}
 	defer location.Close()
 
+	bundleDir := path.Join(config.GetConf().Mserv.PluginDir, mw.UID)
+	checkSumDir := path.Join(bundleDir, mw.Manifest.Checksum)
+	filePath := path.Join(checkSumDir, "bundle.zip")
+
 	log.Info("fetching bundle from storage backend")
-	tmpDir := path.Join(config.GetConf().Mserv.PluginDir, uuid.NewV4().String())
 
-	err = os.MkdirAll(tmpDir, os.ModePerm)
-	if err != nil {
-		return "", err
+	// if file already exist, then nothing has to be done
+	_, err = os.Stat(filePath)
+	if os.IsNotExist(err) {
+		_, bundleErr := os.Stat(bundleDir)
+		if bundleErr == nil {
+			err := os.RemoveAll(bundleDir)
+			if err != nil {
+				log.Error("failed to delete old directory")
+			}
+		}
+
+		createErr := os.MkdirAll(checkSumDir, os.ModePerm)
+		if createErr != nil {
+			return "", err
+		}
+
+		fUrl, err := url.Parse(mw.BundleRef)
+		if err != nil {
+			return "", err
+		}
+
+		item, err := location.ItemByURL(fUrl)
+
+		f, err := os.Create(filePath)
+		if err != nil {
+			return "", err
+		}
+
+		rc, err := item.Open()
+		_, err = io.Copy(f, rc)
+		if err != nil {
+			return "", err
+		}
+		rc.Close()
 	}
 
-	fUrl, err := url.Parse(mw.BundleRef)
-	if err != nil {
-		return "", err
-	}
-
-	item, err := location.ItemByURL(fUrl)
-	fullPath := filepath.Join(tmpDir, "bundle.zip")
-
-	f, err := os.Create(fullPath)
-	if err != nil {
-		return "", err
-	}
-
-	rc, err := item.Open()
-	_, err = io.Copy(f, rc)
-	if err != nil {
-		return "", err
-	}
-	rc.Close()
-
-	return fullPath, nil
+	return filePath, nil
 }
 
 func GetFileStore() (stow.Location, error) {
