@@ -76,7 +76,7 @@ Now create your manifest file (`manifest.json`):
 
 Now you can create an unsigned bundle using:
 
-    tyk-cli bundle build -output bundle.zip -y
+    tyk-cli bundle build --output bundle.zip -y
 
 You should now see a `bundle.zip` file. You can puh this to MServ using curl:
 
