@@ -6,12 +6,9 @@ ENV TYK_MSERV_CONFIG /etc/mserv/mserv.json
 LABEL Description="Tyk MServ service docker image" Vendor="Tyk" Version=$TYKVERSION
 
 RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends \
-            ca-certificates \
- && apt-get autoremove -y \
- && rm -rf /root/.cache
-
+  && apt-get install --assume-yes --no-install-recommends ca-certificates \
+  && apt-get autoremove --assume-yes \
+  && rm -rf /root/.cache
 
 RUN mkdir -p /opt/mserv/downloads
 RUN mkdir -p /opt/mserv/plugins
