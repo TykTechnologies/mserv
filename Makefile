@@ -27,7 +27,8 @@ all: test lint build ## Test and lint and build.
 test: tmp/.tests-passed.sentinel ## Run tests.
 lint: tmp/.linted.sentinel ## Lint all of the Go code. Will also test.
 build: out/image-id ## Build the mserv Docker image. Will also test and lint.
-.PHONY: all test lint build
+build-cli: mservctl/mservctl ## Build the mservctl CLI binary. Will also test and lint.
+.PHONY: all test lint build build-cli
 
 check-swagger:
 > which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
@@ -46,6 +47,8 @@ swagger-client: check-swagger
 
 clean: ## Clean up the temp and output directories, and any built binaries. This will cause everything to get rebuilt.
 > rm -rf ./tmp ./out
+> go clean
+> cd mservctl
 > go clean
 .PHONY: clean
 
@@ -75,3 +78,8 @@ out/image-id: tmp/.linted.sentinel
 > image_id="$(IMAGE_NAME):$(shell uuidgen)"
 > DOCKER_BUILDKIT=1 docker build --tag="$${image_id}" .
 > echo "$${image_id}" > out/image-id
+
+# CLI binary - re-build if the lint output is re-run.
+mservctl/mservctl: tmp/.linted.sentinel
+> cd mservctl
+> go build -mod=vendor

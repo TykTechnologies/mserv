@@ -7,31 +7,30 @@ on:
     branches:
       - wftest/*
     tags:
-      - 'v*'
+      - "v*"
 
 env:
   BINARY_NAME: mservctl
-  
+
 jobs:
   build:
     strategy:
       matrix:
-        platform: [ ubuntu-latest, macos-latest ]
-        arch: [ amd64 ]
-        
+        platform: [ubuntu-latest, macos-latest]
+        arch: [amd64]
+
     runs-on: ${{ matrix.platform }}
-    
+
     steps:
       - name: checkout ${{ github.repository }}
         uses: actions/checkout@v2
 
       - uses: actions/setup-go@v1
         with:
-          go-version: '1.13'
+          go-version: "1.13"
 
       - name: Build
-        run: |
-          cd mservctl && go build -mod=vendor
+        run: make build-cli
 
       - name: Upload ${{ runner.os }} ${{ matrix.arch }} binary
         uses: actions/upload-artifact@v1
@@ -42,7 +41,7 @@ jobs:
   release:
     name: release
     runs-on: ubuntu-latest
-    needs: [ build ]
+    needs: [build]
 
     steps:
       - uses: actions/create-release@v1
@@ -57,7 +56,7 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: ${{ env.BINARY_NAME }}.Linux.amd64
-          
+
       - name: attach linux binary
         uses: actions/upload-release-asset@v1
         env:
@@ -71,7 +70,7 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: ${{ env.BINARY_NAME }}.macos.amd64
-          
+
       - name: attach macos binary
         uses: actions/upload-release-asset@v1
         env:
@@ -81,4 +80,3 @@ jobs:
           asset_path: ./${{ env.BINARY_NAME }}.macos.amd64/${{ env.BINARY_NAME }}
           asset_name: ${{ env.BINARY_NAME }}.macos.amd64
           asset_content_type: application/octet-stream
-
