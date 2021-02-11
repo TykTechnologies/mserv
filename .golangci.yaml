@@ -1,0 +1,137 @@
+issues:
+  exclude-use-default: false
+  exclude:
+    - ^exported var `Err[A-Za-z]+` should have comment or be unexported$
+    - ^should have a package comment, unless it's in another file for this package$
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new-from-rev: origin/master
+
+linters-settings:
+  dogsled:
+    max-blank-identifiers: 2
+
+  dupl:
+    threshold: 50
+
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  errorlint:
+    errorf: true
+
+  gci:
+    local-prefixes: github.com/TykTechnologies/mserv
+
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+
+  godot:
+    capital: true
+    scope: toplevel
+
+  gofmt:
+    simplify: true
+
+  gofumpt:
+    extra-rules: true
+
+  golint:
+    min-confidence: 0
+
+  govet:
+    check-shadowing: true
+    enable-all: true
+
+  lll:
+    line-length: 120
+    tab-width: 2
+
+  maligned:
+    suggest-new: true
+
+  nakedret:
+    max-func-lines: 25
+
+  nestif:
+    min-complexity: 4
+
+  nolintlint:
+    # Exclude following linters from requiring an explanation.  Default is [].
+    allow-no-explanation: []
+
+    allow-unused: false
+    allow-leading-space: false
+    require-explanation: true
+    require-specific: true
+
+  unparam:
+    check-exported: true
+
+  whitespace:
+    multi-if: false
+    multi-func: false
+
+  wsl:
+    strict-append: true
+    allow-assign-and-call: true
+    allow-multiline-assign: true
+    allow-cuddle-declarations: false
+    allow-trailing-comment: false
+    force-case-trailing-whitespace: 0
+    force-err-cuddling: true
+    allow-separated-leading-comment: false
+
+linters:
+  enable:
+    - asciicheck
+    - bodyclose
+    - deadcode
+    - dogsled
+    - dupl
+    - errcheck
+    - errorlint
+    - gci
+    - goconst
+    - gocritic
+    - godot
+    - godox
+    - goerr113
+    - gofmt
+    - gofumpt
+    - golint
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - maligned
+    - nakedret
+    - nestif
+    - nlreturn
+    - noctx
+    - nolintlint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+    - wrapcheck
+    - wsl
+
+output:
+  format: tab
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+  sort-results: true
+
+run:
+  modules-download-mode: readonly
+  timeout: 1m
