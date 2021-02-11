@@ -1,13 +1,20 @@
-.DS_Store
-hack
-plugins
-tmp
-files/mserv-plugin*
-build/bundle.zip
-client/client
+# Binaries/objects
 mserv
-mserv.json
-*.so
-bundle.zip
 mservctl
+*.so
 
+# Makefile things
+/out/
+/tmp/
+
+# macOS
+.DS_Store
+
+# Miscellaneous
+build/bundle.zip
+bundle.zip
+client/client
+files/mserv-plugin*
+hack
+mserv.json
+plugins
