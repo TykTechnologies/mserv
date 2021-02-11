@@ -1,0 +1,11 @@
+# Binaries
+mserv
+mservctl
+
+# Makefile things
+/out/
+/tmp/
+
+# Git metadata
+.git
+.gitignore
