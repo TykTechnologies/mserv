@@ -285,11 +285,11 @@ func fetchAndProcessPlugins(alPLs []*storage.MW) error {
 func waitForCtrlC() {
 	var endWaiter sync.WaitGroup
 	endWaiter.Add(1)
-	var signal_channel chan os.Signal
-	signal_channel = make(chan os.Signal, 1)
-	signal.Notify(signal_channel, os.Interrupt)
+
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt)
 	go func() {
-		<-signal_channel
+		<-signalChannel
 		endWaiter.Done()
 	}()
 	endWaiter.Wait()
