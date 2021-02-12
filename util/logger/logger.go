@@ -2,9 +2,10 @@
 package logger
 
 import (
-	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 var logged = false

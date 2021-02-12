@@ -5,17 +5,20 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/go-openapi/runtime"
+	httptransport "github.com/go-openapi/runtime/client"
+	"github.com/sirupsen/logrus"
+
 	"github.com/TykTechnologies/mserv/mservclient/client"
 	"github.com/TykTechnologies/mserv/mservclient/client/mw"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
-	"github.com/go-openapi/runtime"
-	httptransport "github.com/go-openapi/runtime/client"
-	"github.com/sirupsen/logrus"
 )
 
-var moduleName = "mserv.slave"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.slave"
+	log        = logger.GetLogger(moduleName)
+)
 
 func NewSlaveClient() (*Client, error) {
 	return &Client{}, nil

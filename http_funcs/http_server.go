@@ -2,21 +2,24 @@ package http_funcs
 
 import (
 	"encoding/json"
+	"net"
+	"net/http"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+
 	"github.com/TykTechnologies/mserv/api"
 	"github.com/TykTechnologies/mserv/health"
 	"github.com/TykTechnologies/mserv/models"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
-
-	"net"
-	"net/http"
-	"time"
 )
 
-var moduleName = "mserv.http"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.http"
+	log        = logger.GetLogger(moduleName)
+)
 
 func NewServer(listenOn string, store storage.MservStore) *HttpServ {
 	return &HttpServ{

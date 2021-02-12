@@ -1,9 +1,11 @@
 package storage
 
 import (
-	"github.com/TykTechnologies/mserv/coprocess/bindings/go"
-	"github.com/TykTechnologies/tyk/apidef"
 	"time"
+
+	"github.com/TykTechnologies/tyk/apidef"
+
+	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
 )
 
 type Plugin struct {

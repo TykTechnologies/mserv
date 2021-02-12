@@ -10,21 +10,24 @@ import (
 	"path"
 	"time"
 
+	"github.com/graymeta/stow"
+	"github.com/graymeta/stow/local"
+	"github.com/graymeta/stow/s3"
+	"github.com/jpillora/overseer"
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/TykTechnologies/mserv/bundle"
 	config "github.com/TykTechnologies/mserv/conf"
 	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
 	"github.com/TykTechnologies/mserv/util/storage/errors"
-	"github.com/graymeta/stow"
-	"github.com/graymeta/stow/local"
-	"github.com/graymeta/stow/s3"
-	"github.com/jpillora/overseer"
-	uuid "github.com/satori/go.uuid"
 )
 
-var moduleName = "mserv.api"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.api"
+	log        = logger.GetLogger(moduleName)
+)
 
 func NewAPI(store storage.MservStore) *API {
 	return &API{store: store}
@@ -46,7 +49,6 @@ func (a *API) HandleUpdateBundle(filePath string, bundleName string) (*storage.M
 	}
 
 	return a.HandleNewBundle(filePath, mw.APIID, bundleName)
-
 }
 
 func (a *API) HandleDeleteBundle(bundleName string) error {
@@ -214,7 +216,7 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	}
 
 	log.Warning("not loading into dispatcher")
-	//a.LoadMWIntoDispatcher(mw, bdl.Path)
+	// a.LoadMWIntoDispatcher(mw, bdl.Path)
 
 	// store in mongo
 	_, err = a.store.CreateMW(mw)
@@ -252,6 +254,7 @@ func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*stora
 		log.Error("failed to get file handle: ", err)
 		return nil, err
 	}
+
 	defer fStore.Close()
 
 	log.Info("file store handle opened")

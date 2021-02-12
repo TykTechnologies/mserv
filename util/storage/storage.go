@@ -3,7 +3,8 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"github.com/TykTechnologies/mserv/conf"
+
+	config "github.com/TykTechnologies/mserv/conf"
 	"github.com/TykTechnologies/mserv/util/logger"
 	"github.com/TykTechnologies/mserv/util/storage/mongo"
 	"github.com/TykTechnologies/mserv/util/storage/slave"

@@ -1,9 +1,6 @@
 package bundle
 
 import (
-	"github.com/TykTechnologies/goverify"
-	"github.com/TykTechnologies/tyk/apidef"
-
 	"archive/zip"
 	"bytes"
 	"crypto/md5"
@@ -11,17 +8,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/TykTechnologies/mserv/conf"
-	"github.com/TykTechnologies/mserv/util/logger"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/TykTechnologies/goverify"
+	"github.com/TykTechnologies/tyk/apidef"
+
+	config "github.com/TykTechnologies/mserv/conf"
+	"github.com/TykTechnologies/mserv/util/logger"
 )
 
-var moduleName = "mserv.bundle"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.bundle"
+	log        = logger.GetLogger(moduleName)
+)
 
 // Bundle is the basic bundle data structure, it holds the bundle name and the data.
 type Bundle struct {
@@ -50,7 +53,6 @@ func (b *Bundle) Verify() error {
 		bundleVerifier, err = goverify.LoadPublicKeyFromFile(pKeyPath)
 		if err != nil {
 			return err
-
 		}
 
 		useSignature = true
@@ -201,6 +203,7 @@ func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
 	if err := bundle.Verify(); err != nil {
 		log.Info("bundle verification failed: ", bundle.Name)
 	}
+
 	return nil
 }
 
@@ -249,11 +252,10 @@ func SaveBundleZip(bundle *Bundle, apiID, bundleName string) error {
 		return err
 	}
 
-	// Set the destination path:
+	// Set the destination path
 	bundle.Path = destPath
 
 	if loadErr := LoadBundleManifest(bundle, false); loadErr != nil {
-
 		if err := os.RemoveAll(bundle.Path); err != nil {
 			return fmt.Errorf("%s, %s", loadErr.Error(), err.Error())
 		}

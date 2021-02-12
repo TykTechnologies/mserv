@@ -3,9 +3,11 @@ package config
 
 import (
 	"encoding/json"
+
+	"github.com/kelseyhightower/envconfig"
+
 	"github.com/TykTechnologies/mserv/util/conf"
 	"github.com/TykTechnologies/mserv/util/logger"
-	"github.com/kelseyhightower/envconfig"
 )
 
 type StorageDriver string
@@ -49,10 +51,12 @@ type Config struct {
 	Mserv MservConf
 }
 
-var sConf *Config
-var moduleName = "mserv.config"
-var envPrefix = "MS"
-var log = logger.GetLogger(moduleName)
+var (
+	sConf      *Config
+	moduleName = "mserv.config"
+	envPrefix  = "MS"
+	log        = logger.GetLogger(moduleName)
+)
 
 // GetConf will get the config data for the MServ server
 var GetConf = func() *Config {
@@ -76,7 +80,6 @@ var GetConf = func() *Config {
 
 // GetConf will get the config data for the Momo Driver
 var GetSubConf = func(in interface{}, envTag string) error {
-
 	err := json.Unmarshal(conf.ReadConf(), in)
 	if err != nil {
 		return err

@@ -2,9 +2,10 @@ package mongo
 
 import (
 	"errors"
+	"gopkg.in/mgo.v2/bson"
+
 	mservStorage "github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/storage/mongo/mgo_models"
-	"gopkg.in/mgo.v2/bson"
 )
 
 func (m *Store) GetMWByID(id string) (*mservStorage.MW, error) {
@@ -30,6 +31,7 @@ func (m *Store) GetMWByApiID(ApiID string) (*mservStorage.MW, error) {
 
 	return mm.MW, nil
 }
+
 func (m *Store) GetAllActive() ([]*mservStorage.MW, error) {
 	s := m.ms.Copy()
 	defer s.Close()
@@ -108,6 +110,7 @@ func (m *Store) DeleteMW(id string) error {
 
 	return nil
 }
+
 func (m *Store) InitMservStore(tag string) error {
 	m.tag = tag
 	return m.Init()

@@ -5,15 +5,18 @@ package conf
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 type BaseConfig struct{}
 
-var log = logrus.New() // need to use independent logger
-var confDat = make([]byte, 0)
+var (
+	log     = logrus.New() // need to use independent logger
+	confDat = make([]byte, 0)
+)
 
 // GlobalConf is the config that the main application provides, each module
 // actually gets it's own config objects that are locally defined.

@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jpillora/overseer"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {

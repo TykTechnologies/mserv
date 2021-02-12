@@ -1,37 +1,40 @@
 package main
 
 import (
-	"github.com/TykTechnologies/mserv/conf"
-	_ "github.com/TykTechnologies/mserv/doc"
-	"github.com/TykTechnologies/mserv/storage"
-	"github.com/TykTechnologies/mserv/util/logger"
-	utilStore "github.com/TykTechnologies/mserv/util/storage"
-	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
-	"path"
-
 	"fmt"
-	"github.com/TykTechnologies/mserv/api"
-	"github.com/TykTechnologies/mserv/coprocess/bindings/go"
-	"github.com/TykTechnologies/mserv/health"
-	"github.com/TykTechnologies/mserv/http_funcs"
-	"github.com/jpillora/overseer"
-	"google.golang.org/grpc"
 	"io"
 	"net"
 	"net/url"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/jpillora/overseer"
+	uuid "github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+
+	"github.com/TykTechnologies/mserv/api"
+	config "github.com/TykTechnologies/mserv/conf"
+	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
+	_ "github.com/TykTechnologies/mserv/doc"
+	"github.com/TykTechnologies/mserv/health"
+	"github.com/TykTechnologies/mserv/http_funcs"
+	"github.com/TykTechnologies/mserv/storage"
+	"github.com/TykTechnologies/mserv/util/logger"
+	utilStore "github.com/TykTechnologies/mserv/util/storage"
 )
 
-var moduleName = "mserv.main"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.main"
+	log        = logger.GetLogger(moduleName)
 
-var httpServerAddr = ":8989"
-var grpcServer *grpc.Server
+	httpServerAddr = ":8989"
+	grpcServer     *grpc.Server
+)
 
 func main() {
 	conf := config.GetConf()
@@ -98,7 +101,7 @@ func prog(state overseer.State) {
 
 	if conf.Mserv.GrpcServer.Enabled {
 		// First run, fetch all plugins so we can init properly
-		//log.Warning("SKIPPING PLUGIN FETCH AND INIT")
+		// log.Warning("SKIPPING PLUGIN FETCH AND INIT")
 		log.Warning("fetching latest plugin list")
 		alPLs, err := store.GetAllActive()
 		if err != nil {
@@ -133,7 +136,6 @@ func prog(state overseer.State) {
 
 func pollForActiveMWs(store storage.MservStore) {
 	for {
-
 		time.Sleep(time.Second * 5)
 
 		alPLs, err := store.GetAllActive()
@@ -157,7 +159,6 @@ func pollForActiveMWs(store storage.MservStore) {
 			overseer.Restart()
 		}
 	}
-
 }
 
 func startGRPCServer(lis net.Listener, listenAddress string) {

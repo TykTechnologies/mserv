@@ -3,11 +3,13 @@ package mongo
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/TykTechnologies/mserv/util/logger"
-	"github.com/patrickmn/go-cache"
-	"gopkg.in/mgo.v2"
 	"net"
 	"time"
+
+	"github.com/patrickmn/go-cache"
+	"gopkg.in/mgo.v2"
+
+	"github.com/TykTechnologies/mserv/util/logger"
 )
 
 const (
