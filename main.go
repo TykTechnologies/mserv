@@ -207,12 +207,16 @@ func processPlugins(pls []*storage.MW) error {
 				return err
 			}
 
-			fUrl, err := url.Parse(pf.FileRef)
+			fURL, err := url.Parse(pf.FileRef)
+			if err != nil {
+				return fmt.Errorf("could not parse '%s': %w", pf.FileRef, err)
+			}
+
+			item, err := location.ItemByURL(fURL)
 			if err != nil {
 				return err
 			}
 
-			item, err := location.ItemByURL(fUrl)
 			fullPath := filepath.Join(tmpDir, pf.FileName)
 
 			f, err := os.Create(fullPath)
@@ -221,6 +225,10 @@ func processPlugins(pls []*storage.MW) error {
 			}
 
 			rc, err := item.Open()
+			if err != nil {
+				return fmt.Errorf("could not open item '%s': %w", item.URL(), err)
+			}
+
 			_, err = io.Copy(f, rc)
 			if err != nil {
 				return err
