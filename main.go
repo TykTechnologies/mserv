@@ -75,21 +75,22 @@ func prog(state overseer.State) {
 		httpServerAddr = conf.Mserv.HttpAddr
 	}
 
-	s := http_funcs.NewServer(httpServerAddr, store)
-	m := http_funcs.GetRouter()
+	srv := http_funcs.NewServer(httpServerAddr, store)
+	mux := http_funcs.GetRouter()
 
 	// start required endpoints
-	http_funcs.InitEndpoints(m, s)
-	http_funcs.InitAPI(m, s)
+	http_funcs.InitEndpoints(mux, srv)
+	http_funcs.InitAPI(mux, srv)
 
 	// if enabled start the http test server
 	if conf.Mserv.AllowHttpInvocation {
-		http_funcs.InitHttpInvocationServer(m, s)
+		http_funcs.InitHttpInvocationServer(mux, srv)
 	}
 
 	go func() {
 		log.Info("starting HTTP server on ", httpServerAddr)
-		err = s.Listen(m, state.Listener)
+
+		err = srv.Listen(mux, state.Listener)
 		if err != nil {
 			log.Fatal(err)
 		}
