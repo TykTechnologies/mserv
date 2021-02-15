@@ -1,6 +1,6 @@
 # Mserv Tyk plugin server
 
-Mserv is an asset erver and gRPC host for the [Tyk open source API Gateway](https://tyk.io). The Tyk API gateway can be extended using middleware plugins, these extensions can run in the same process as the gateway when written in JavaScript, Python or Lua, and can be added as "nanoservices" using gRPC-enabled languages.
+Mserv is an asset server and gRPC host for the [Tyk open source API Gateway](https://tyk.io). The Tyk API gateway can be extended using middleware plugins, these extensions can run in the same process as the gateway when written in JavaScript, Python or Lua, and can be added as "nanoservices" using gRPC-enabled languages.
 
 When using in-process plugins, plugin "bundles" (cryptographically signed zip files including all the necessary code to be run), these files must be stored in a third-party asset server (such as S3) and Tyk looks for them on a base URL.
 
