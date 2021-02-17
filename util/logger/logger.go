@@ -14,12 +14,12 @@ func GetLogger(tag string) *logrus.Entry {
 
 	var level logrus.Level
 	switch strings.ToLower(lvl) {
+	case "trace":
+		level = logrus.TraceLevel
 	case "debug":
 		level = logrus.DebugLevel
 	case "warning":
 		level = logrus.WarnLevel
-	case "info":
-		level = logrus.InfoLevel
 	case "error":
 		level = logrus.ErrorLevel
 	default:
