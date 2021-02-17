@@ -24,10 +24,10 @@ type GlobalConf struct{}
 
 var gConf *GlobalConf
 
-// ReadConf provides the raw data from the config file, the config file is set via an
-// environment variable: `TYK_CONTROLLER_CONFIG`, otherwise defaults
-// to `/etc/tyk-controller/config.json` a module can use this function to then parse
-// the raw config data into it's own module-specific config type.
+// ReadConf provides the raw data from the config file.
+// The config file's location can be set via an environment variable `TYK_MSERV_CONFIG`, and if not specified defaults
+// to `/etc/tyk-mserv/config.json`.
+// A module can use this function to then parse the raw config data into it's own module-specific config type.
 func ReadConf() []byte {
 	if len(confDat) > 0 {
 		return confDat
@@ -55,8 +55,7 @@ func ReadConf() []byte {
 	return confDat
 }
 
-// GetGlobalConf provides the global config object that can be accessed from
-// all modules where necessary.
+// GetGlobalConf provides the global config object that can be accessed from all modules where necessary.
 func GetGlobalConf() *GlobalConf {
 	if gConf != nil {
 		return gConf
