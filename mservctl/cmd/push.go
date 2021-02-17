@@ -9,13 +9,12 @@ import (
 
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
-	Use:   "push",
-	Short: "Pushes a middleware to mserv",
-	Long: `Uploads a bundle file created with tyk CLI to mserv, e.g.:
-
-$ mservctl push /path/to/bundle.zip`,
-	Args: cobra.ExactArgs(1),
-	Run:  pushMiddleware,
+	Use:     "push",
+	Short:   "Pushes a middleware to mserv",
+	Long:    `Uploads a bundle file created with tyk CLI to mserv`,
+	Example: `mservctl push /path/to/bundle.zip`,
+	Args:    cobra.ExactArgs(1),
+	Run:     pushMiddleware,
 }
 
 func init() {
