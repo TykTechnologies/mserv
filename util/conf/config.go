@@ -35,20 +35,31 @@ func ReadConf() []byte {
 
 	confFile := os.Getenv("TYK_MSERV_CONFIG")
 	if confFile == "" {
-		confFile = "/etc/tyk-controller/config.json"
+		confFile = "/etc/tyk-mserv/config.json"
 	}
 
 	// Add/replace file path field on package-level logger
 	log = log.WithField("file", confFile)
 	log.Debug("config file path")
 
-	dat, err := ioutil.ReadFile(confFile)
+	if _, err := os.Stat(confFile); err != nil {
+		if os.IsNotExist(err) {
+			log.Warning("config file does not exist")
 
+			confDat = []byte("{}")
+
+			return confDat
+		}
+
+		log.WithError(err).Warning("could not stat config file")
+	}
+
+	dat, err := ioutil.ReadFile(confFile) //nolint:gosec // User allowed to set config file path via env var
 	if err != nil {
 		log.WithError(err).Fatal("could not read config file")
 	}
 
-	log.Debugf("Conf file is %v bytes", len(dat))
+	log.Debugf("config file is %d bytes", len(dat))
 
 	confDat = dat
 
