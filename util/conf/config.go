@@ -14,7 +14,7 @@ import (
 type BaseConfig struct{}
 
 var (
-	log     = logrus.New() // need to use independent logger
+	log     = logrus.New().WithField("app", "mserv.util.conf") // need to use independent logger
 	confDat = make([]byte, 0)
 )
 
@@ -34,15 +34,18 @@ func ReadConf() []byte {
 	}
 
 	confFile := os.Getenv("TYK_MSERV_CONFIG")
-	log.Debug("config file is: ", confFile)
 	if confFile == "" {
 		confFile = "/etc/tyk-controller/config.json"
 	}
 
+	// Add/replace file path field on package-level logger
+	log = log.WithField("file", confFile)
+	log.Debug("config file path")
+
 	dat, err := ioutil.ReadFile(confFile)
 
 	if err != nil {
-		log.Fatal("Error reading configuration for controller: ", err)
+		log.WithError(err).Fatal("could not read config file")
 	}
 
 	log.Debugf("Conf file is %v bytes", len(dat))
@@ -62,7 +65,7 @@ func GetGlobalConf() *GlobalConf {
 	gConf = &GlobalConf{}
 	err := json.Unmarshal(ReadConf(), gConf)
 	if err != nil {
-		log.Fatal("Failed to unmarshal mock driver config: ", err)
+		log.WithError(err).Fatal("could not unmarshal driver config")
 	}
 
 	return gConf

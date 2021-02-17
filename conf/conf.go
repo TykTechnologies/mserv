@@ -65,11 +65,11 @@ var GetConf = func() *Config {
 
 		err := json.Unmarshal(conf.ReadConf(), sConf)
 		if err != nil {
-			log.Fatal("Failed to unmarshal mserv driver config: ", err)
+			log.WithError(err).Fatal("failed to unmarshal mserv driver config")
 		}
 
 		if err := envconfig.Process(envPrefix, sConf); err != nil {
-			log.Fatalf("failed to process config env vars: %v", err)
+			log.WithError(err).Fatal("failed to process config env vars")
 		}
 
 		SetDefaults()

@@ -38,9 +38,7 @@ func GetLogger(tag string) *logrus.Entry {
 	logger := logrus.New()
 	logger.SetLevel(level)
 
-	var log = logger.WithFields(logrus.Fields{
-		"app": tag,
-	})
+	log := logger.WithField("app", tag)
 
 	return log
 }

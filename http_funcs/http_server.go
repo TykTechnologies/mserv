@@ -66,8 +66,8 @@ func (h *HttpServ) HealthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpServ) HandleError(err error, w http.ResponseWriter, r *http.Request) {
-	log.Error("api error: ", err)
-	h.writeToClient(w, r, models.NewPayload("error", nil, err.Error()), 500)
+	log.WithError(err).Error("internal server error")
+	h.writeToClient(w, r, models.NewPayload("error", nil, err.Error()), http.StatusInternalServerError) // 500
 }
 
 func (h *HttpServ) HandleOK(payload interface{}, w http.ResponseWriter, r *http.Request) {
@@ -84,7 +84,7 @@ func (h *HttpServ) writeToClient(w http.ResponseWriter, r *http.Request, payload
 		// Write big error
 		es, err := json.Marshal(models.NewPayload("error", nil, err.Error()))
 		if err != nil {
-			log.Fatal("This is a terrible place to be: ", err)
+			log.WithError(err).Fatal("This is a terrible place to be")
 		}
 
 		w.Write(es)

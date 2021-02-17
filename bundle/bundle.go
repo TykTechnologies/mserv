@@ -192,8 +192,9 @@ func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
 	defer f.Close()
 
 	if err := json.NewDecoder(f).Decode(&bundle.Manifest); err != nil {
-		log.Info("couldn't unmarshal the manifest file for bundle: ", bundle.Name)
-		return err
+		log.WithError(err).WithField("bundle-name", bundle.Name).Error("could not unmarshal the manifest file for bundle")
+
+		return fmt.Errorf("could not unmarshal the manifest file for bundle: %w", err)
 	}
 
 	if skipVerification {
@@ -263,6 +264,7 @@ func SaveBundleZip(bundle *Bundle, apiID, bundleName string) error {
 		return loadErr
 	}
 
-	log.Info("bundle is valid")
+	log.WithField("bundle-name", bundleName).Info("bundle is valid")
+
 	return nil
 }

@@ -105,7 +105,7 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	// upload
 	fStore, err := GetFileStore()
 	if err != nil {
-		log.Error("failed to get file handle: ", err)
+		log.WithError(err).Error("failed to get file handle")
 		return nil, err
 	}
 	defer fStore.Close()
@@ -251,18 +251,17 @@ func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*stora
 	// upload
 	fStore, err := GetFileStore()
 	if err != nil {
-		log.Error("failed to get file handle: ", err)
+		log.WithError(err).Error("failed to get file handle")
 		return nil, err
 	}
 
 	defer fStore.Close()
 
-	log.Info("file store handle opened")
-	log.Info("storing bundle in asset repo")
+	log.Info("file store handle opened, storing bundle in asset repo")
 	pluginContainerID := "mserv-plugin-" + bundleName
 	fCont, getErr := fStore.Container(pluginContainerID)
 	if getErr != nil {
-		log.Warning("container not found, creating")
+		log.WithField("container-id", pluginContainerID).Warning("container not found, creating")
 		fCont, err = fStore.CreateContainer(pluginContainerID)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't fetch container: %s, couldn't create container: %s", getErr.Error(), err.Error())
