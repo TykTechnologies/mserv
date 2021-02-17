@@ -352,7 +352,7 @@ func (a *API) FetchAndServeBundleFile(mw *storage.MW) (string, error) {
 		if bundleErr == nil {
 			errRemove := os.RemoveAll(bundleDir)
 			if errRemove != nil {
-				log.Error("failed to delete old directory")
+				log.WithError(errRemove).Error("failed to delete old directory")
 			}
 		}
 
