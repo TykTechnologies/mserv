@@ -1,3 +1,4 @@
+// Package api provides handlers for mserv's various endpoints.
 package api
 
 import (
@@ -57,13 +58,7 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 		return err
 	}
 
-	err = a.store.DeleteMW(mw.UID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-
+	return a.store.DeleteMW(mw.UID)
 }
 
 func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*storage.MW, error) {
@@ -355,8 +350,8 @@ func (a *API) FetchAndServeBundleFile(mw *storage.MW) (string, error) {
 	if os.IsNotExist(err) {
 		_, bundleErr := os.Stat(bundleDir)
 		if bundleErr == nil {
-			err := os.RemoveAll(bundleDir)
-			if err != nil {
+			errRemove := os.RemoveAll(bundleDir)
+			if errRemove != nil {
 				log.Error("failed to delete old directory")
 			}
 		}

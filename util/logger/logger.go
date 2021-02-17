@@ -1,4 +1,4 @@
-// package logger provides a centralised logger resource
+// Package logger provides a centralised logger resource.
 package logger
 
 import (
@@ -17,7 +17,7 @@ func logOnce(log *logrus.Logger) {
 	logged = true
 }
 
-// GetLogger will provide a tagged logger by passing in a `tag` value for easier log parsing
+// GetLogger will provide a tagged logger by passing in a 'tag' value for easier log parsing.
 func GetLogger(tag string) *logrus.Entry {
 	lvl := os.Getenv("TYK_MSERV_LOGLEVEL")
 

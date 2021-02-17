@@ -1,3 +1,4 @@
+// Package storage defines a runtime store and associated types for use with mserv.
 package storage
 
 import (

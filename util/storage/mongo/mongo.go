@@ -17,11 +17,11 @@ const (
 )
 
 type Store struct {
-	initialised bool
-	tag         string
 	ms          *mgo.Session
 	conf        *MgoStoreConf
 	objCache    *cache.Cache
+	tag         string
+	initialised bool
 }
 
 var log = logger.GetLogger("mserv.util.storage.mgo")

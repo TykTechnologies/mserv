@@ -25,9 +25,9 @@ func NewSlaveClient() (*Client, error) {
 }
 
 type Client struct {
-	tag      string
 	conf     *StoreConf
 	mservapi *client.Mserv
+	tag      string
 }
 
 func (c *Client) defaultAuth() runtime.ClientAuthInfoWriter {
@@ -44,7 +44,8 @@ func (c *Client) GetMWByID(id string) (*storage.MW, error) {
 	return clientToStorageMW(resp.GetPayload().Payload)
 }
 
-func (c *Client) GetMWByApiID(ApiID string) (*storage.MW, error) {
+// GetMWByAPIID is not yet implemented.
+func (c *Client) GetMWByAPIID(apiID string) (*storage.MW, error) {
 	return nil, errors.New("not implemented")
 }
 

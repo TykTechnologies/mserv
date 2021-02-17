@@ -1,7 +1,6 @@
 package mongo
 
 import (
-	"errors"
 	"gopkg.in/mgo.v2/bson"
 
 	mservStorage "github.com/TykTechnologies/mserv/storage"
@@ -20,7 +19,8 @@ func (m *Store) GetMWByID(id string) (*mservStorage.MW, error) {
 	return mm.MW, nil
 }
 
-func (m *Store) GetMWByApiID(ApiID string) (*mservStorage.MW, error) {
+// GetMWByAPIID gets middleware from the store based on its API ID.
+func (m *Store) GetMWByAPIID(apiID string) (*mservStorage.MW, error) {
 	s := m.ms.Copy()
 	defer s.Close()
 
@@ -54,7 +54,7 @@ func (m *Store) UpdateMW(mw *mservStorage.MW) (string, error) {
 	defer s.Close()
 
 	if mw.UID == "" {
-		return "", errors.New("UID cannot be empty")
+		return "", storage.ErrEmptyUID
 	}
 
 	mMw := &mgo_models.MgoMW{}
@@ -76,7 +76,7 @@ func (m *Store) CreateMW(mw *mservStorage.MW) (string, error) {
 	defer s.Close()
 
 	if mw.UID == "" {
-		return "", errors.New("UID cannot be empty")
+		return "", storage.ErrEmptyUID
 	}
 
 	mMw := &mgo_models.MgoMW{
@@ -96,7 +96,7 @@ func (m *Store) DeleteMW(id string) error {
 	defer s.Close()
 
 	if id == "" {
-		return errors.New("UID cannot be empty")
+		return storage.ErrEmptyUID
 	}
 
 	mMw := &mgo_models.MgoMW{}

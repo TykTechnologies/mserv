@@ -26,12 +26,12 @@ var (
 	log        = logger.GetLogger(moduleName)
 )
 
-// Bundle is the basic bundle data structure, it holds the bundle name and the data.
+// Bundle is the basic bundle data structure. It holds the bundle name and the data.
 type Bundle struct {
-	Name     string
-	Data     []byte
-	Path     string
 	Manifest apidef.BundleManifest
+	Name     string
+	Path     string
+	Data     []byte
 }
 
 // Verify performs a signature verification on the bundle file.
@@ -187,7 +187,7 @@ func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
 	manifestPath := filepath.Join(bundle.Path, "manifest.json")
 	f, err := os.Open(manifestPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not open manifest '%s': %w", manifestPath, err)
 	}
 	defer f.Close()
 

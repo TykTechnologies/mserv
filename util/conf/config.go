@@ -63,8 +63,8 @@ func GetGlobalConf() *GlobalConf {
 	}
 
 	gConf = &GlobalConf{}
-	err := json.Unmarshal(ReadConf(), gConf)
-	if err != nil {
+
+	if err := json.Unmarshal(ReadConf(), gConf); err != nil {
 		log.WithError(err).Fatal("could not unmarshal driver config")
 	}
 

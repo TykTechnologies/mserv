@@ -30,10 +30,12 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 	defer uploadedFile.Close()
 
 	tmpDir := path.Join(os.TempDir(), "mserv-bundles")
-	if err := os.Mkdir(tmpDir, 0700); err != nil {
-		if !os.IsExist(err) {
-			return "", err
+	if errMkdir := os.Mkdir(tmpDir, 0700); errMkdir != nil {
+		if !os.IsExist(errMkdir) {
+			return "", fmt.Errorf("could not make directory '%s': %w", tmpDir, errMkdir)
 		}
+
+		log.WithField("path", tmpDir).Info("directory already exists")
 	}
 
 	tmpFile, err := ioutil.TempFile(tmpDir, "bundle-*.zip")
@@ -75,9 +77,9 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 
 	if storeOnly == "true" {
 		// This is a python or JS bundle, just proxy it to a store
-		mw, err := h.api.StoreBundleOnly(tmpFileLoc, apiID, bundleName)
-		if err != nil {
-			h.HandleError(err, w, r)
+		mw, errStore := h.api.StoreBundleOnly(tmpFileLoc, apiID, bundleName)
+		if errStore != nil {
+			h.HandleError(errStore, w, r)
 			return
 		}
 

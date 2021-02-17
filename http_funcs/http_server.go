@@ -29,8 +29,8 @@ func NewServer(listenOn string, store storage.MservStore) *HttpServ {
 }
 
 type HttpServ struct {
-	addr string
 	api  *api.API
+	addr string
 }
 
 func (h *HttpServ) Listen(m *mux.Router, l net.Listener) error {
@@ -82,9 +82,9 @@ func (h *HttpServ) writeToClient(w http.ResponseWriter, r *http.Request, payload
 	js, err := json.Marshal(payload)
 	if err != nil {
 		// Write big error
-		es, err := json.Marshal(models.NewPayload("error", nil, err.Error()))
-		if err != nil {
-			log.WithError(err).Fatal("This is a terrible place to be")
+		es, errMarshal := json.Marshal(models.NewPayload("error", nil, err.Error()))
+		if errMarshal != nil {
+			log.WithError(errMarshal).Fatal("This is a terrible place to be")
 		}
 
 		w.Write(es)
