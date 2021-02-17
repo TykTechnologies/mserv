@@ -13,13 +13,16 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// UploadFormField is the name of the field/multi-part section which contains the file bytes.
+const UploadFormField = "uploadfile"
+
 func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 	// Save the file to disk
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		return "", err
 	}
 
-	uploadedFile, _, err := r.FormFile("uploadfile")
+	uploadedFile, _, err := r.FormFile(UploadFormField)
 	if err != nil {
 		return "", err
 	}
