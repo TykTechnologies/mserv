@@ -10,12 +10,14 @@ SHELL := bash
 MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --warn-undefined-variables
 
-IMAGE_NAME ?= tykio/mserv
 
 ifeq ($(origin .RECIPEPREFIX), undefined)
   $(error This Make does not support .RECIPEPREFIX. Please use GNU Make 4.0 or later.)
 endif
 .RECIPEPREFIX = >
+
+binary_name ?= $(shell basename $(CURDIR))
+image_repository ?= tykio/$(binary_name)
 
 # Adjust the width of the first column by changing the '16' value in the printf pattern.
 help:
@@ -23,12 +25,13 @@ help:
   | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}'
 .PHONY: help
 
-all: test lint build ## Test and lint and build.
+all: test lint build build-cli ## Test and lint and build.
 test: tmp/.tests-passed.sentinel ## Run tests.
 lint: tmp/.linted.sentinel ## Lint all of the Go code. Will also test.
 build: out/image-id ## Build the mserv Docker image. Will also test and lint.
+build-binary: $(binary_name) ## Build a bare binary only, without a Docker image wrapped around it.
 build-cli: mservctl/mservctl ## Build the mservctl CLI binary. Will also test and lint.
-.PHONY: all test lint build build-cli
+.PHONY: all test lint build build-binary build-cli
 
 check-swagger:
 > which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
@@ -54,10 +57,17 @@ clean: ## Clean up the temp and output directories, and any built binaries. This
 
 clean-docker: ## Clean up any built Docker images.
 > docker images \
-  --filter=reference=$(IMAGE_NAME) \
+  --filter=reference=$(image_repository) \
   --no-trunc --quiet | sort -f | uniq | xargs -n 1 docker rmi --force
 > rm -f out/image-id
 .PHONY: clean-docker
+
+clean-hack: ## Clean up binaries under 'hack'.
+> rm -rf ./hack/bin
+.PHONY: clean-hack
+
+clean-all: clean clean-docker clean-hack ## Clean all of the things.
+.PHONY: clean-all
 
 # Tests - re-run if any Go files have changes since tmp/.tests-passed.sentinel last touched.
 tmp/.tests-passed.sentinel: $(shell find . -type f -iname "*.go")
@@ -66,18 +76,26 @@ tmp/.tests-passed.sentinel: $(shell find . -type f -iname "*.go")
 > touch $@
 
 # Lint - re-run if the tests have been re-run (and so, by proxy, whenever the source files have changed).
-tmp/.linted.sentinel: tmp/.tests-passed.sentinel
+tmp/.linted.sentinel: .golangci.yaml hack/bin/golangci-lint tmp/.tests-passed.sentinel
 > mkdir -p $(@D)
-> golangci-lint run
+> hack/bin/golangci-lint run
 > go vet ./...
 > touch $@
 
+hack/bin/golangci-lint:
+> curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+> | sh -s -- -b $(shell pwd)/hack/bin
+
 # Docker image - re-build if the lint output is re-run.
-out/image-id: tmp/.linted.sentinel
+out/image-id: Dockerfile tmp/.linted.sentinel
 > mkdir -p $(@D)
-> image_id="$(IMAGE_NAME):$(shell uuidgen)"
+> image_id="$(image_repository):$(shell uuidgen)"
 > DOCKER_BUILDKIT=1 docker build --tag="$${image_id}" .
 > echo "$${image_id}" > out/image-id
+
+# Main server binary - re-build if the lint output is re-run.
+$(binary_name): tmp/.linted.sentinel
+> go build -mod=vendor
 
 # CLI binary - re-build if the lint output is re-run.
 mservctl/mservctl: tmp/.linted.sentinel
