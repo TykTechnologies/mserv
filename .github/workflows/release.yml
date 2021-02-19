@@ -32,7 +32,10 @@ jobs:
           go-version: "1.13"
 
       - name: Build
-        run: make build-cli
+        run: |
+          sudo apt-get update
+          sudo apt-get --only-upgrade install build-essential
+          make build-cli
 
       - name: Upload ${{ runner.os }} ${{ matrix.arch }} binary
         uses: actions/upload-artifact@v1
