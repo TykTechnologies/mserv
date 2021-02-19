@@ -385,22 +385,33 @@ func (a *API) FetchAndServeBundleFile(mw *storage.MW) (string, error) {
 }
 
 func GetFileStore() (stow.Location, error) {
-	c := config.GetConf().Mserv
+	fsCfg := config.GetConf().Mserv.FileStore
 
-	switch c.FileStore.Kind {
+	if fsCfg == nil {
+		return nil, ErrNoFSConfig
+	}
+
+	switch fsCfg.Kind {
 	case "local":
-		log.Info("detected local store")
+		log.WithField("path", fsCfg.Local.ConfigKeyPath).Info("detected local store")
+
+		// Dialling stow/local will fail if the base directory doesn't already exist
+		if err := os.MkdirAll(fsCfg.Local.ConfigKeyPath, 0o750); err != nil && !os.IsExist(err) {
+			return nil, fmt.Errorf("%w: %s", ErrCreateLocal, fsCfg.Local.ConfigKeyPath)
+		}
+
 		return stow.Dial("local", stow.ConfigMap{
-			local.ConfigKeyPath: c.FileStore.Local.ConfigKeyPath,
+			local.ConfigKeyPath: fsCfg.Local.ConfigKeyPath,
 		})
 	case "s3":
 		log.Info("detected s3 store")
+
 		return stow.Dial("s3", stow.ConfigMap{
-			s3.ConfigAccessKeyID: c.FileStore.S3.ConfigAccessKeyID,
-			s3.ConfigRegion:      c.FileStore.S3.ConfigRegion,
-			s3.ConfigSecretKey:   c.FileStore.S3.ConfigSecretKey,
+			s3.ConfigAccessKeyID: fsCfg.S3.ConfigAccessKeyID,
+			s3.ConfigRegion:      fsCfg.S3.ConfigRegion,
+			s3.ConfigSecretKey:   fsCfg.S3.ConfigSecretKey,
 		})
 	}
 
-	return nil, errors.New("storage kind not supported")
+	return nil, fmt.Errorf("%w: %s", ErrFSKind, fsCfg.Kind)
 }
