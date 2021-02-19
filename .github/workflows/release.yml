@@ -14,6 +14,8 @@ env:
 
 jobs:
   build:
+    name: Build the 'mservctl' CLI binary
+
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest]
@@ -31,7 +33,19 @@ jobs:
         with:
           go-version: "1.13"
 
-      - name: Build
+      - name: Update 'make' on Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get --only-upgrade install build-essential
+        if: ${{ matrix.platform == 'ubuntu-latest' }}
+
+      - name: Install 'make' on macOS
+        run: |
+          brew install make
+          echo "/usr/local/opt/make/libexec/gnubin" >> $GITHUB_PATH
+        if: ${{ matrix.platform == 'macos-latest' }}
+
+      - name: Build the CLI binary
         run: make build-cli
 
       - name: Upload ${{ runner.os }} ${{ matrix.arch }} binary
@@ -41,9 +55,11 @@ jobs:
           path: mservctl/${{ env.BINARY_NAME }}
 
   release:
-    name: release
-    runs-on: ubuntu-latest
     needs: [build]
+
+    name: Create a draft release, and attach the built binaries
+
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/create-release@v1
@@ -59,7 +75,7 @@ jobs:
         with:
           name: ${{ env.BINARY_NAME }}.Linux.amd64
 
-      - name: attach linux binary
+      - name: Attach Linux binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,7 +89,7 @@ jobs:
         with:
           name: ${{ env.BINARY_NAME }}.macos.amd64
 
-      - name: attach macos binary
+      - name: Attach macOS binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
