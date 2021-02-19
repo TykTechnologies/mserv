@@ -70,26 +70,18 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 		h.HandleError(err, w, r)
 		return
 	}
-	log.Info("saved bundle to ", tmpFileLoc)
 
-	storeOnly := r.FormValue("store_only")
-	bundleName := uuid.NewV4().String()
+	log.WithField("path", tmpFileLoc).Info("saved bundle")
 
-	if storeOnly == "true" {
-		// This is a python or JS bundle, just proxy it to a store
-		mw, errStore := h.api.StoreBundleOnly(tmpFileLoc, apiID, bundleName)
-		if errStore != nil {
-			h.HandleError(errStore, w, r)
-			return
-		}
+	// By default, assume this is a plugin bundle
+	processor := h.api.HandleNewBundle
 
-		ret := map[string]interface{}{"BundleID": mw.UID}
-		h.HandleOK(ret, w, r)
-		return
+	if r.FormValue("store_only") == "true" {
+		// If this flag is set then we just need to proxy it to a store
+		processor = h.api.StoreBundleOnly
 	}
 
-	// This is a plugin bundle (.so) so we should process it differently
-	mw, err := h.api.HandleNewBundle(tmpFileLoc, apiID, bundleName)
+	mw, err := processor(tmpFileLoc, apiID, uuid.NewV4().String())
 	if err != nil {
 		h.HandleError(err, w, r)
 		return
