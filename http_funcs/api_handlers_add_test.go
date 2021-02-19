@@ -3,6 +3,7 @@ package http_funcs_test
 import (
 	"archive/zip"
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"io/ioutil"
 	"mime/multipart"
@@ -40,6 +41,10 @@ var addMWTestCases = map[string]addMWTestCase{
 	"Uncompressed Python by itself (no manifest JSON) is not OK": {
 		testBodyBytes:  uncompressedPythonTestData,
 		expectedStatus: http.StatusUnprocessableEntity,
+	},
+	"Random byte stream can not be classified/detected": {
+		testBodyBytes:  randomByteStream,
+		expectedStatus: http.StatusUnsupportedMediaType,
 	},
 }
 
@@ -162,4 +167,16 @@ func uncompressedJSONTestData(t *testing.T) []byte {
 
 func uncompressedPythonTestData(t *testing.T) []byte {
 	return getUncompressed(t, "testdata/uncompressed/middleware.py")
+}
+
+func randomByteStream(t *testing.T) []byte {
+	t.Helper()
+	is := is.New(t)
+
+	bytes := make([]byte, 1024)
+	count, err := rand.Read(bytes)
+	is.NoErr(err)
+	is.Equal(1024, count)
+
+	return bytes
 }
