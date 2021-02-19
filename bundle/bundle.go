@@ -208,20 +208,28 @@ func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
 	return nil
 }
 
-func CreateBundlePath(bundleName, apiID string) string {
+// CreateBundlePath returns the absolute path for a bundle, consisting of the combined API ID and hashed bundle name.
+func CreateBundlePath(bundleName, apiID string) (string, error) {
 	tykBundlePath := filepath.Join(config.GetConf().Mserv.MiddlewarePath, "plugins")
 	bundleNameHash := md5.New()
-	io.WriteString(bundleNameHash, bundleName)
+
+	if _, err := io.WriteString(bundleNameHash, bundleName); err != nil {
+		return "", fmt.Errorf("could not write to hash: %w", err)
+	}
+
 	bundlePath := fmt.Sprintf("%s_%x", apiID, bundleNameHash.Sum(nil))
-	return filepath.Join(tykBundlePath, bundlePath)
+
+	return filepath.Join(tykBundlePath, bundlePath), nil
 }
 
 func LoadBundle(apiID, bundleName string) (*Bundle, error) {
-	destPath := CreateBundlePath(bundleName, apiID)
-
-	_, err := os.Stat(destPath)
+	destPath, err := CreateBundlePath(bundleName, apiID)
 	if err != nil {
 		return nil, err
+	}
+
+	if _, errStat := os.Stat(destPath); errStat != nil {
+		return nil, fmt.Errorf("could not stat '%s': %w", destPath, errStat)
 	}
 
 	// The bundle exists, load and return:
@@ -244,7 +252,11 @@ func LoadBundle(apiID, bundleName string) (*Bundle, error) {
 }
 
 func SaveBundleZip(bundle *Bundle, apiID, bundleName string) error {
-	destPath := CreateBundlePath(bundleName, apiID)
+	destPath, err := CreateBundlePath(bundleName, apiID)
+	if err != nil {
+		return err
+	}
+
 	if err := os.MkdirAll(destPath, 0700); err != nil {
 		return errors.New("couldn't create bundle directory")
 	}
