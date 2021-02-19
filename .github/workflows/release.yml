@@ -35,7 +35,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get --only-upgrade install build-essential
-        if: ${{ matrix.platform }} == "ubuntu-latest"
+        if: ${{ matrix.platform == 'ubuntu-latest' }}
 
       - name: Build the CLI binary
         run: make build-cli
