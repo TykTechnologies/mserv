@@ -97,6 +97,10 @@ func SetDefaults() {
 		sConf.Mserv.PluginDir = "/tmp/mserv-plugins"
 	}
 
+	if sConf.Mserv.MiddlewarePath == "" {
+		sConf.Mserv.MiddlewarePath = "/tmp/mserv-middleware"
+	}
+
 	if sConf.Mserv.FileStore.Kind == "" {
 		log.Warning("file store is set to nil, setting to local FS")
 		sConf.Mserv.FileStore = &FileStorage{
