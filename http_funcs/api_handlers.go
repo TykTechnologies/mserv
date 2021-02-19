@@ -1,12 +1,14 @@
 package http_funcs
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jpillora/overseer"
@@ -38,14 +40,29 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 		log.WithField("path", tmpDir).Info("directory already exists")
 	}
 
+	mimeCheck := &bytes.Buffer{}
+	if _, errCopy := io.Copy(mimeCheck, uploadedFile); errCopy != nil {
+		return "", fmt.Errorf("could not copy uploaded file into buffer: %w", errCopy)
+	}
+
+	mimeBytes := mimeCheck.Bytes()
+	if uploadMIMEType := http.DetectContentType(mimeBytes); strings.HasPrefix(uploadMIMEType, mimeGeneric) {
+		return "", ErrGenericMimeDetected
+	} else if !strings.HasPrefix(uploadMIMEType, mimeZIP) {
+		return "", fmt.Errorf("%w: %s", ErrUploadNotZip, uploadMIMEType)
+	}
+
 	tmpFile, err := ioutil.TempFile(tmpDir, "bundle-*.zip")
 	if err != nil {
 		return "", err
 	}
 	defer tmpFile.Close()
 
-	_, err = io.Copy(tmpFile, uploadedFile)
-	if err != nil {
+	if _, err := io.Copy(tmpFile, bytes.NewBuffer(mimeBytes)); err != nil {
+		if errRemove := os.Remove(tmpFile.Name()); errRemove != nil && !os.IsNotExist(errRemove) {
+			log.WithError(errRemove).WithField("temp-file", tmpFile.Name()).Warning("could not remove temp file")
+		}
+
 		return "", err
 	}
 
@@ -53,8 +70,8 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 }
 
 // swagger:route POST /api/mw mw mwAdd
-// Adds a new middleware. If `store_only` field is true it will only be available for download.
-// Expects a file bundle in `uploadfile` form field.
+// Adds a new middleware. If `store_only` field is 'true' then it will only be available for download.
+// Expects a zipped file bundle in the `uploadfile` form field.
 //
 // Security:
 //   api_key:

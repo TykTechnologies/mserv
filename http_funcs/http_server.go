@@ -2,6 +2,7 @@ package http_funcs
 
 import (
 	"encoding/json"
+	"errors"
 	"net"
 	"net/http"
 	"time"
@@ -62,16 +63,35 @@ func (h *HttpServ) HealthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeToClient(w, r, models.NewPayload("error", health.Report, ""), 500)
+	h.writeToClient(w, r, models.NewPayload("error", health.Report, ""), http.StatusInternalServerError) // 500
 }
 
 func (h *HttpServ) HandleError(err error, w http.ResponseWriter, r *http.Request) {
-	log.WithError(err).Error("internal server error")
-	h.writeToClient(w, r, models.NewPayload("error", nil, err.Error()), http.StatusInternalServerError) // 500
+	var (
+		message string
+		status  int
+	)
+
+	switch {
+	case errors.Is(err, ErrGenericMimeDetected):
+		message = "unsupported media type"
+		status = http.StatusUnsupportedMediaType // 415
+
+	case errors.Is(err, ErrUploadNotZip):
+		message = "unprocessable entity"
+		status = http.StatusUnprocessableEntity // 422
+
+	default:
+		message = "internal server error"
+		status = http.StatusInternalServerError // 500
+	}
+
+	log.WithError(err).Error(message)
+	h.writeToClient(w, r, models.NewPayload("error", nil, err.Error()), status)
 }
 
 func (h *HttpServ) HandleOK(payload interface{}, w http.ResponseWriter, r *http.Request) {
-	h.writeToClient(w, r, models.NewPayload("ok", payload, ""), 200)
+	h.writeToClient(w, r, models.NewPayload("ok", payload, ""), http.StatusOK) // 200
 }
 
 func (h *HttpServ) writeToClient(w http.ResponseWriter, r *http.Request, payload models.Payload, status int) {
