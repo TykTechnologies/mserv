@@ -73,6 +73,12 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 
 	log.WithField("path", tmpFileLoc).Info("saved bundle")
 
+	defer func() {
+		if errRemove := os.Remove(tmpFileLoc); errRemove != nil && !os.IsNotExist(errRemove) {
+			log.WithError(errRemove).WithField("temp-file", tmpFileLoc).Warning("could not remove temp file")
+		}
+	}()
+
 	// By default, assume this is a plugin bundle
 	processor := h.api.HandleNewBundle
 
@@ -115,6 +121,12 @@ func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 		h.HandleError(err, w, r)
 		return
 	}
+
+	defer func() {
+		if errRemove := os.Remove(tmpFileLoc); errRemove != nil && !os.IsNotExist(errRemove) {
+			log.WithError(errRemove).WithField("temp-file", tmpFileLoc).Warning("could not remove temp file")
+		}
+	}()
 
 	mw, err := h.api.HandleUpdateBundle(tmpFileLoc, id)
 	if err != nil {
