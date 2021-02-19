@@ -112,49 +112,45 @@ func TestAddMW(t *testing.T) {
 	}
 }
 
-func compressedTestData(t *testing.T) []byte {
+func getCompressed(t *testing.T, files ...string) []byte {
 	t.Helper()
+	is := is.New(t)
 
 	buf := bytes.Buffer{}
 	w := zip.NewWriter(&buf)
-	files := []string{"testdata/uncompressed/manifest.json", "testdata/uncompressed/middleware.py"}
 
 	for _, file := range files {
 		f, err := w.Create(file)
-		if err != nil {
-			t.Fatalf("could not create file '%s' in zip.Writer: %v", file, err)
-		}
+		is.NoErr(err) // could not create file in zip.Writer
 
 		_, err = f.Write(getUncompressed(t, file))
-		if err != nil {
-			t.Fatalf("could not write body of file '%s' into zip.Writer: %v", file, err)
-		}
+		is.NoErr(err) // could not write body of file into zip.Writer
 	}
 
-	if err := w.Close(); err != nil {
-		t.Fatalf("could not close zip.Writer: %v", err)
-	}
+	is.NoErr(w.Close()) // could not close zip.Writer
 
 	return buf.Bytes()
 }
 
 func getUncompressed(t *testing.T, files ...string) []byte {
 	t.Helper()
+	is := is.New(t)
 
 	buf := bytes.Buffer{}
 
 	for _, file := range files {
 		body, err := ioutil.ReadFile(file) //nolint:gosec // File paths are hard-coded to these test helpers
-		if err != nil {
-			t.Fatalf("could not read file '%s': %v", file, err)
-		}
+		is.NoErr(err)                      // could not read file
 
-		if _, err := buf.Write(body); err != nil {
-			t.Fatalf("could not write body of file '%s' into buffer: %v", file, err)
-		}
+		_, err = buf.Write(body)
+		is.NoErr(err) // could not write body of file into buffer
 	}
 
 	return buf.Bytes()
+}
+
+func compressedTestData(t *testing.T) []byte {
+	return getCompressed(t, "testdata/uncompressed/manifest.json", "testdata/uncompressed/middleware.py")
 }
 
 func uncompressedTestData(t *testing.T) []byte {
