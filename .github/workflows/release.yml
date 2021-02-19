@@ -37,6 +37,12 @@ jobs:
           sudo apt-get --only-upgrade install build-essential
         if: ${{ matrix.platform == 'ubuntu-latest' }}
 
+      - name: Install 'make' on macOS
+        run: |
+          brew install make
+          echo "/usr/local/opt/make/libexec/gnubin" >> $GITHUB_PATH
+        if: ${{ matrix.platform == 'macos-latest' }}
+
       - name: Build the CLI binary
         run: make build-cli
 
