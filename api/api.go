@@ -1,3 +1,4 @@
+// Package api provides handlers for mserv's various endpoints.
 package api
 
 import (
@@ -10,21 +11,24 @@ import (
 	"path"
 	"time"
 
+	"github.com/graymeta/stow"
+	"github.com/graymeta/stow/local"
+	"github.com/graymeta/stow/s3"
+	"github.com/jpillora/overseer"
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/TykTechnologies/mserv/bundle"
 	config "github.com/TykTechnologies/mserv/conf"
 	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
 	"github.com/TykTechnologies/mserv/util/storage/errors"
-	"github.com/graymeta/stow"
-	"github.com/graymeta/stow/local"
-	"github.com/graymeta/stow/s3"
-	"github.com/jpillora/overseer"
-	uuid "github.com/satori/go.uuid"
 )
 
-var moduleName = "mserv.api"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.api"
+	log        = logger.GetLogger(moduleName)
+)
 
 func NewAPI(store storage.MservStore) *API {
 	return &API{store: store}
@@ -46,7 +50,6 @@ func (a *API) HandleUpdateBundle(filePath string, bundleName string) (*storage.M
 	}
 
 	return a.HandleNewBundle(filePath, mw.APIID, bundleName)
-
 }
 
 func (a *API) HandleDeleteBundle(bundleName string) error {
@@ -55,13 +58,7 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 		return err
 	}
 
-	err = a.store.DeleteMW(mw.UID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-
+	return a.store.DeleteMW(mw.UID)
 }
 
 func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*storage.MW, error) {
@@ -103,7 +100,7 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	// upload
 	fStore, err := GetFileStore()
 	if err != nil {
-		log.Error("failed to get file handle: ", err)
+		log.WithError(err).Error("failed to get file handle")
 		return nil, err
 	}
 	defer fStore.Close()
@@ -214,7 +211,7 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	}
 
 	log.Warning("not loading into dispatcher")
-	//a.LoadMWIntoDispatcher(mw, bdl.Path)
+	// a.LoadMWIntoDispatcher(mw, bdl.Path)
 
 	// store in mongo
 	_, err = a.store.CreateMW(mw)
@@ -249,17 +246,17 @@ func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*stora
 	// upload
 	fStore, err := GetFileStore()
 	if err != nil {
-		log.Error("failed to get file handle: ", err)
+		log.WithError(err).Error("failed to get file handle")
 		return nil, err
 	}
+
 	defer fStore.Close()
 
-	log.Info("file store handle opened")
-	log.Info("storing bundle in asset repo")
+	log.Info("file store handle opened, storing bundle in asset repo")
 	pluginContainerID := "mserv-plugin-" + bundleName
 	fCont, getErr := fStore.Container(pluginContainerID)
 	if getErr != nil {
-		log.Warning("container not found, creating")
+		log.WithField("container-id", pluginContainerID).Warning("container not found, creating")
 		fCont, err = fStore.CreateContainer(pluginContainerID)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't fetch container: %s, couldn't create container: %s", getErr.Error(), err.Error())
@@ -353,9 +350,9 @@ func (a *API) FetchAndServeBundleFile(mw *storage.MW) (string, error) {
 	if os.IsNotExist(err) {
 		_, bundleErr := os.Stat(bundleDir)
 		if bundleErr == nil {
-			err := os.RemoveAll(bundleDir)
-			if err != nil {
-				log.Error("failed to delete old directory")
+			errRemove := os.RemoveAll(bundleDir)
+			if errRemove != nil {
+				log.WithError(errRemove).Error("failed to delete old directory")
 			}
 		}
 
@@ -388,22 +385,33 @@ func (a *API) FetchAndServeBundleFile(mw *storage.MW) (string, error) {
 }
 
 func GetFileStore() (stow.Location, error) {
-	c := config.GetConf().Mserv
+	fsCfg := config.GetConf().Mserv.FileStore
 
-	switch c.FileStore.Kind {
+	if fsCfg == nil {
+		return nil, ErrNoFSConfig
+	}
+
+	switch fsCfg.Kind {
 	case "local":
-		log.Info("detected local store")
+		log.WithField("path", fsCfg.Local.ConfigKeyPath).Info("detected local store")
+
+		// Dialling stow/local will fail if the base directory doesn't already exist
+		if err := os.MkdirAll(fsCfg.Local.ConfigKeyPath, 0o750); err != nil && !os.IsExist(err) {
+			return nil, fmt.Errorf("%w: %s", ErrCreateLocal, fsCfg.Local.ConfigKeyPath)
+		}
+
 		return stow.Dial("local", stow.ConfigMap{
-			local.ConfigKeyPath: c.FileStore.Local.ConfigKeyPath,
+			local.ConfigKeyPath: fsCfg.Local.ConfigKeyPath,
 		})
 	case "s3":
 		log.Info("detected s3 store")
+
 		return stow.Dial("s3", stow.ConfigMap{
-			s3.ConfigAccessKeyID: c.FileStore.S3.ConfigAccessKeyID,
-			s3.ConfigRegion:      c.FileStore.S3.ConfigRegion,
-			s3.ConfigSecretKey:   c.FileStore.S3.ConfigSecretKey,
+			s3.ConfigAccessKeyID: fsCfg.S3.ConfigAccessKeyID,
+			s3.ConfigRegion:      fsCfg.S3.ConfigRegion,
+			s3.ConfigSecretKey:   fsCfg.S3.ConfigSecretKey,
 		})
 	}
 
-	return nil, errors.New("storage kind not supported")
+	return nil, fmt.Errorf("%w: %s", ErrFSKind, fsCfg.Kind)
 }

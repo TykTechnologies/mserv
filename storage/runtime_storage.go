@@ -1,11 +1,14 @@
+// Package storage defines a runtime store and associated types for use with mserv.
 package storage
 
 import (
 	"fmt"
-	"github.com/TykTechnologies/mserv/coprocess/bindings/go"
-	"github.com/TykTechnologies/mserv/util/storage/errors"
-	"github.com/TykTechnologies/tyk/apidef"
 	"sync"
+
+	"github.com/TykTechnologies/tyk/apidef"
+
+	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
+	"github.com/TykTechnologies/mserv/util/storage/errors"
 )
 
 var GlobalRtStore *RuntimeStore
@@ -41,7 +44,6 @@ func (s *RuntimeStore) GetManifest(apiID string) (*apidef.BundleManifest, error)
 }
 
 func (s *RuntimeStore) GetHookFunc(name string) (func(*coprocess.Object) (*coprocess.Object, error), error) {
-
 	hf, ok := s.functions.Load(name)
 	if !ok {
 		return nil, errors.New("not found")
@@ -99,7 +101,7 @@ func (s *RuntimeStore) FilterNewMW(fetched []*MW) (*DiffReport, error) {
 	})
 
 	for _, o := range fetched {
-		//fmt.Printf("checking %s\n", o.UID)
+		// fmt.Printf("checking %s\n", o.UID)
 		iMw, exists := s.manifests.Load(o.UID)
 		if exists {
 			mw, ok := iMw.(*MW)
@@ -107,7 +109,7 @@ func (s *RuntimeStore) FilterNewMW(fetched []*MW) (*DiffReport, error) {
 				return nil, fmt.Errorf("mw not the correct type: %v", o.UID)
 			}
 
-			//fmt.Printf("comparing %v to %v\n", mw.Added, o.Added)
+			// fmt.Printf("comparing %v to %v\n", mw.Added, o.Added)
 			if mw.Added == o.Added {
 				// no change, skip
 				continue
@@ -115,7 +117,7 @@ func (s *RuntimeStore) FilterNewMW(fetched []*MW) (*DiffReport, error) {
 		}
 
 		// doesn't exist, and has not been updated
-		//fmt.Printf("%s does not exist, adding to diff\n", o.UID)
+		// fmt.Printf("%s does not exist, adding to diff\n", o.UID)
 		diff.Added = append(diff.Added, o)
 	}
 

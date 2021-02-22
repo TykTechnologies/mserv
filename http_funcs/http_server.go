@@ -2,21 +2,25 @@ package http_funcs
 
 import (
 	"encoding/json"
+	"errors"
+	"net"
+	"net/http"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+
 	"github.com/TykTechnologies/mserv/api"
 	"github.com/TykTechnologies/mserv/health"
 	"github.com/TykTechnologies/mserv/models"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
-
-	"net"
-	"net/http"
-	"time"
 )
 
-var moduleName = "mserv.http"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.http"
+	log        = logger.GetLogger(moduleName)
+)
 
 func NewServer(listenOn string, store storage.MservStore) *HttpServ {
 	return &HttpServ{
@@ -26,8 +30,8 @@ func NewServer(listenOn string, store storage.MservStore) *HttpServ {
 }
 
 type HttpServ struct {
-	addr string
 	api  *api.API
+	addr string
 }
 
 func (h *HttpServ) Listen(m *mux.Router, l net.Listener) error {
@@ -59,16 +63,35 @@ func (h *HttpServ) HealthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeToClient(w, r, models.NewPayload("error", health.Report, ""), 500)
+	h.writeToClient(w, r, models.NewPayload("error", health.Report, ""), http.StatusInternalServerError) // 500
 }
 
 func (h *HttpServ) HandleError(err error, w http.ResponseWriter, r *http.Request) {
-	log.Error("api error: ", err)
-	h.writeToClient(w, r, models.NewPayload("error", nil, err.Error()), 500)
+	var (
+		message string
+		status  int
+	)
+
+	switch {
+	case errors.Is(err, ErrGenericMimeDetected):
+		message = "unsupported media type"
+		status = http.StatusUnsupportedMediaType // 415
+
+	case errors.Is(err, ErrUploadNotZip):
+		message = "unprocessable entity"
+		status = http.StatusUnprocessableEntity // 422
+
+	default:
+		message = "internal server error"
+		status = http.StatusInternalServerError // 500
+	}
+
+	log.WithError(err).Error(message)
+	h.writeToClient(w, r, models.NewPayload("error", nil, err.Error()), status)
 }
 
 func (h *HttpServ) HandleOK(payload interface{}, w http.ResponseWriter, r *http.Request) {
-	h.writeToClient(w, r, models.NewPayload("ok", payload, ""), 200)
+	h.writeToClient(w, r, models.NewPayload("ok", payload, ""), http.StatusOK) // 200
 }
 
 func (h *HttpServ) writeToClient(w http.ResponseWriter, r *http.Request, payload models.Payload, status int) {
@@ -79,9 +102,9 @@ func (h *HttpServ) writeToClient(w http.ResponseWriter, r *http.Request, payload
 	js, err := json.Marshal(payload)
 	if err != nil {
 		// Write big error
-		es, err := json.Marshal(models.NewPayload("error", nil, err.Error()))
-		if err != nil {
-			log.Fatal("This is a terrible place to be: ", err)
+		es, errMarshal := json.Marshal(models.NewPayload("error", nil, err.Error()))
+		if errMarshal != nil {
+			log.WithError(errMarshal).Fatal("This is a terrible place to be")
 		}
 
 		w.Write(es)

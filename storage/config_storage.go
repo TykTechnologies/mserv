@@ -1,9 +1,11 @@
 package storage
 
 import (
-	"github.com/TykTechnologies/mserv/coprocess/bindings/go"
-	"github.com/TykTechnologies/tyk/apidef"
 	"time"
+
+	"github.com/TykTechnologies/tyk/apidef"
+
+	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
 )
 
 type Plugin struct {
@@ -15,20 +17,20 @@ type Plugin struct {
 }
 
 type MW struct {
-	UID          string
+	Added        time.Time
+	Manifest     *apidef.BundleManifest
 	APIID        string
 	OrgID        string
-	Manifest     *apidef.BundleManifest
+	UID          string
+	BundleRef    string
 	Plugins      []*Plugin
 	Active       bool
-	Added        time.Time
-	BundleRef    string
 	DownloadOnly bool
 }
 
 type MservStore interface {
 	GetMWByID(id string) (*MW, error)
-	GetMWByApiID(ApiID string) (*MW, error)
+	GetMWByAPIID(APIID string) (*MW, error)
 	GetAllActive() ([]*MW, error)
 	CreateMW(mw *MW) (string, error)
 	UpdateMW(mw *MW) (string, error)

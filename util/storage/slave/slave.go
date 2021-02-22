@@ -5,26 +5,29 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/go-openapi/runtime"
+	httptransport "github.com/go-openapi/runtime/client"
+	"github.com/sirupsen/logrus"
+
 	"github.com/TykTechnologies/mserv/mservclient/client"
 	"github.com/TykTechnologies/mserv/mservclient/client/mw"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
-	"github.com/go-openapi/runtime"
-	httptransport "github.com/go-openapi/runtime/client"
-	"github.com/sirupsen/logrus"
 )
 
-var moduleName = "mserv.slave"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.slave"
+	log        = logger.GetLogger(moduleName)
+)
 
 func NewSlaveClient() (*Client, error) {
 	return &Client{}, nil
 }
 
 type Client struct {
-	tag      string
 	conf     *StoreConf
 	mservapi *client.Mserv
+	tag      string
 }
 
 func (c *Client) defaultAuth() runtime.ClientAuthInfoWriter {
@@ -41,7 +44,8 @@ func (c *Client) GetMWByID(id string) (*storage.MW, error) {
 	return clientToStorageMW(resp.GetPayload().Payload)
 }
 
-func (c *Client) GetMWByApiID(ApiID string) (*storage.MW, error) {
+// GetMWByAPIID is not yet implemented.
+func (c *Client) GetMWByAPIID(apiID string) (*storage.MW, error) {
 	return nil, errors.New("not implemented")
 }
 

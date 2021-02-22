@@ -1,37 +1,40 @@
 package main
 
 import (
-	"github.com/TykTechnologies/mserv/conf"
-	_ "github.com/TykTechnologies/mserv/doc"
-	"github.com/TykTechnologies/mserv/storage"
-	"github.com/TykTechnologies/mserv/util/logger"
-	utilStore "github.com/TykTechnologies/mserv/util/storage"
-	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
-	"path"
-
 	"fmt"
-	"github.com/TykTechnologies/mserv/api"
-	"github.com/TykTechnologies/mserv/coprocess/bindings/go"
-	"github.com/TykTechnologies/mserv/health"
-	"github.com/TykTechnologies/mserv/http_funcs"
-	"github.com/jpillora/overseer"
-	"google.golang.org/grpc"
 	"io"
 	"net"
 	"net/url"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/jpillora/overseer"
+	uuid "github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+
+	"github.com/TykTechnologies/mserv/api"
+	config "github.com/TykTechnologies/mserv/conf"
+	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
+	_ "github.com/TykTechnologies/mserv/doc"
+	"github.com/TykTechnologies/mserv/health"
+	"github.com/TykTechnologies/mserv/http_funcs"
+	"github.com/TykTechnologies/mserv/storage"
+	"github.com/TykTechnologies/mserv/util/logger"
+	utilStore "github.com/TykTechnologies/mserv/util/storage"
 )
 
-var moduleName = "mserv.main"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.main"
+	log        = logger.GetLogger(moduleName)
 
-var httpServerAddr = ":8989"
-var grpcServer *grpc.Server
+	httpServerAddr = ":8989"
+	grpcServer     *grpc.Server
+)
 
 func main() {
 	conf := config.GetConf()
@@ -72,21 +75,22 @@ func prog(state overseer.State) {
 		httpServerAddr = conf.Mserv.HttpAddr
 	}
 
-	s := http_funcs.NewServer(httpServerAddr, store)
-	m := http_funcs.GetRouter()
+	srv := http_funcs.NewServer(httpServerAddr, store)
+	mux := http_funcs.GetRouter()
 
 	// start required endpoints
-	http_funcs.InitEndpoints(m, s)
-	http_funcs.InitAPI(m, s)
+	http_funcs.InitEndpoints(mux, srv)
+	http_funcs.InitAPI(mux, srv)
 
 	// if enabled start the http test server
 	if conf.Mserv.AllowHttpInvocation {
-		http_funcs.InitHttpInvocationServer(m, s)
+		http_funcs.InitHttpInvocationServer(mux, srv)
 	}
 
 	go func() {
 		log.Info("starting HTTP server on ", httpServerAddr)
-		err = s.Listen(m, state.Listener)
+
+		err = srv.Listen(mux, state.Listener)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -98,7 +102,7 @@ func prog(state overseer.State) {
 
 	if conf.Mserv.GrpcServer.Enabled {
 		// First run, fetch all plugins so we can init properly
-		//log.Warning("SKIPPING PLUGIN FETCH AND INIT")
+		// log.Warning("SKIPPING PLUGIN FETCH AND INIT")
 		log.Warning("fetching latest plugin list")
 		alPLs, err := store.GetAllActive()
 		if err != nil {
@@ -133,7 +137,6 @@ func prog(state overseer.State) {
 
 func pollForActiveMWs(store storage.MservStore) {
 	for {
-
 		time.Sleep(time.Second * 5)
 
 		alPLs, err := store.GetAllActive()
@@ -157,7 +160,6 @@ func pollForActiveMWs(store storage.MservStore) {
 			overseer.Restart()
 		}
 	}
-
 }
 
 func startGRPCServer(lis net.Listener, listenAddress string) {
@@ -205,12 +207,16 @@ func processPlugins(pls []*storage.MW) error {
 				return err
 			}
 
-			fUrl, err := url.Parse(pf.FileRef)
+			fURL, err := url.Parse(pf.FileRef)
+			if err != nil {
+				return fmt.Errorf("could not parse '%s': %w", pf.FileRef, err)
+			}
+
+			item, err := location.ItemByURL(fURL)
 			if err != nil {
 				return err
 			}
 
-			item, err := location.ItemByURL(fUrl)
 			fullPath := filepath.Join(tmpDir, pf.FileName)
 
 			f, err := os.Create(fullPath)
@@ -219,6 +225,10 @@ func processPlugins(pls []*storage.MW) error {
 			}
 
 			rc, err := item.Open()
+			if err != nil {
+				return fmt.Errorf("could not open item '%s': %w", item.URL(), err)
+			}
+
 			_, err = io.Copy(f, rc)
 			if err != nil {
 				return err
@@ -275,11 +285,11 @@ func fetchAndProcessPlugins(alPLs []*storage.MW) error {
 func waitForCtrlC() {
 	var endWaiter sync.WaitGroup
 	endWaiter.Add(1)
-	var signal_channel chan os.Signal
-	signal_channel = make(chan os.Signal, 1)
-	signal.Notify(signal_channel, os.Interrupt)
+
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt)
 	go func() {
-		<-signal_channel
+		<-signalChannel
 		endWaiter.Done()
 	}()
 	endWaiter.Wait()

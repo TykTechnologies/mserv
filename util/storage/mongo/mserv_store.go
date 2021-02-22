@@ -1,36 +1,36 @@
 package mongo
 
 import (
-	"errors"
-	mservStorage "github.com/TykTechnologies/mserv/storage"
-	"github.com/TykTechnologies/mserv/util/storage/mongo/mgo_models"
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/TykTechnologies/mserv/storage"
+	"github.com/TykTechnologies/mserv/util/storage/mongo/mgo_models"
 )
 
-func (m *Store) GetMWByID(id string) (*mservStorage.MW, error) {
+// GetMWByID gets middleware from the store based on its UID.
+func (m *Store) GetMWByID(id string) (*storage.MW, error) {
+	return m.getByID("mw.uid", id)
+}
+
+// GetMWByAPIID gets middleware from the store based on its API ID.
+func (m *Store) GetMWByAPIID(apiID string) (*storage.MW, error) {
+	return m.getByID("mw.apiid", apiID)
+}
+
+func (m *Store) getByID(key, value string) (*storage.MW, error) {
 	s := m.ms.Copy()
 	defer s.Close()
 
 	mm := &mgo_models.MgoMW{}
-	if err := s.DB("").C(mservCol).Find(bson.M{"mw.uid": id}).One(mm); err != nil {
+	if err := s.DB("").C(mservCol).Find(bson.M{key: value}).One(mm); err != nil {
 		return nil, err
 	}
 
 	return mm.MW, nil
 }
 
-func (m *Store) GetMWByApiID(ApiID string) (*mservStorage.MW, error) {
-	s := m.ms.Copy()
-	defer s.Close()
-
-	mm := &mgo_models.MgoMW{}
-	if err := s.DB("").C(mservCol).Find(bson.M{"mw.apiid": ApiID}).One(mm); err != nil {
-		return nil, err
-	}
-
-	return mm.MW, nil
-}
-func (m *Store) GetAllActive() ([]*mservStorage.MW, error) {
+// GetAllActive returns all active middleware from the store.
+func (m *Store) GetAllActive() ([]*storage.MW, error) {
 	s := m.ms.Copy()
 	defer s.Close()
 
@@ -39,7 +39,7 @@ func (m *Store) GetAllActive() ([]*mservStorage.MW, error) {
 		return nil, err
 	}
 
-	mws := make([]*mservStorage.MW, len(mm))
+	mws := make([]*storage.MW, len(mm))
 	for i, mmw := range mm {
 		mws[i] = mmw.MW
 	}
@@ -47,12 +47,13 @@ func (m *Store) GetAllActive() ([]*mservStorage.MW, error) {
 	return mws, nil
 }
 
-func (m *Store) UpdateMW(mw *mservStorage.MW) (string, error) {
+// UpdateMW will update the given middleware in-place in storage.
+func (m *Store) UpdateMW(mw *storage.MW) (string, error) {
 	s := m.ms.Copy()
 	defer s.Close()
 
 	if mw.UID == "" {
-		return "", errors.New("UID cannot be empty")
+		return "", storage.ErrEmptyUID
 	}
 
 	mMw := &mgo_models.MgoMW{}
@@ -69,12 +70,13 @@ func (m *Store) UpdateMW(mw *mservStorage.MW) (string, error) {
 	return mw.UID, nil
 }
 
-func (m *Store) CreateMW(mw *mservStorage.MW) (string, error) {
+// CreateMW stores the given middleware.
+func (m *Store) CreateMW(mw *storage.MW) (string, error) {
 	s := m.ms.Copy()
 	defer s.Close()
 
 	if mw.UID == "" {
-		return "", errors.New("UID cannot be empty")
+		return "", storage.ErrEmptyUID
 	}
 
 	mMw := &mgo_models.MgoMW{
@@ -94,7 +96,7 @@ func (m *Store) DeleteMW(id string) error {
 	defer s.Close()
 
 	if id == "" {
-		return errors.New("UID cannot be empty")
+		return storage.ErrEmptyUID
 	}
 
 	mMw := &mgo_models.MgoMW{}
@@ -108,6 +110,7 @@ func (m *Store) DeleteMW(id string) error {
 
 	return nil
 }
+
 func (m *Store) InitMservStore(tag string) error {
 	m.tag = tag
 	return m.Init()

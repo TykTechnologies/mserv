@@ -3,11 +3,13 @@ package mongo
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/TykTechnologies/mserv/util/logger"
-	"github.com/patrickmn/go-cache"
-	"gopkg.in/mgo.v2"
 	"net"
 	"time"
+
+	"github.com/patrickmn/go-cache"
+	"gopkg.in/mgo.v2"
+
+	"github.com/TykTechnologies/mserv/util/logger"
 )
 
 const (
@@ -15,11 +17,11 @@ const (
 )
 
 type Store struct {
-	initialised bool
-	tag         string
 	ms          *mgo.Session
 	conf        *MgoStoreConf
 	objCache    *cache.Cache
+	tag         string
+	initialised bool
 }
 
 var log = logger.GetLogger("mserv.util.storage.mgo")

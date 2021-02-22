@@ -7,15 +7,16 @@ type BasePayload struct {
 
 // Payload is the default response
 type Payload struct {
-	BasePayload
 	Payload interface{}
+	BasePayload
 }
 
-func NewPayload(status string, payload interface{}, error string) Payload {
+// NewPayload populates and returns an initialised Payload struct.
+func NewPayload(status string, payload interface{}, err string) Payload {
 	return Payload{
 		BasePayload: BasePayload{
 			Status: status,
-			Error:  error,
+			Error:  err,
 		},
 		Payload: payload,
 	}

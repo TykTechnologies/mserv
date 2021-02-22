@@ -1,9 +1,6 @@
 package bundle
 
 import (
-	"github.com/TykTechnologies/goverify"
-	"github.com/TykTechnologies/tyk/apidef"
-
 	"archive/zip"
 	"bytes"
 	"crypto/md5"
@@ -11,24 +8,30 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/TykTechnologies/mserv/conf"
-	"github.com/TykTechnologies/mserv/util/logger"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/TykTechnologies/goverify"
+	"github.com/TykTechnologies/tyk/apidef"
+
+	config "github.com/TykTechnologies/mserv/conf"
+	"github.com/TykTechnologies/mserv/util/logger"
 )
 
-var moduleName = "mserv.bundle"
-var log = logger.GetLogger(moduleName)
+var (
+	moduleName = "mserv.bundle"
+	log        = logger.GetLogger(moduleName)
+)
 
-// Bundle is the basic bundle data structure, it holds the bundle name and the data.
+// Bundle is the basic bundle data structure. It holds the bundle name and the data.
 type Bundle struct {
-	Name     string
-	Data     []byte
-	Path     string
 	Manifest apidef.BundleManifest
+	Name     string
+	Path     string
+	Data     []byte
 }
 
 // Verify performs a signature verification on the bundle file.
@@ -50,7 +53,6 @@ func (b *Bundle) Verify() error {
 		bundleVerifier, err = goverify.LoadPublicKeyFromFile(pKeyPath)
 		if err != nil {
 			return err
-
 		}
 
 		useSignature = true
@@ -185,13 +187,14 @@ func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
 	manifestPath := filepath.Join(bundle.Path, "manifest.json")
 	f, err := os.Open(manifestPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not open manifest '%s': %w", manifestPath, err)
 	}
 	defer f.Close()
 
 	if err := json.NewDecoder(f).Decode(&bundle.Manifest); err != nil {
-		log.Info("couldn't unmarshal the manifest file for bundle: ", bundle.Name)
-		return err
+		log.WithError(err).WithField("bundle-name", bundle.Name).Error("could not unmarshal the manifest file for bundle")
+
+		return fmt.Errorf("could not unmarshal the manifest file for bundle: %w", err)
 	}
 
 	if skipVerification {
@@ -201,23 +204,32 @@ func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
 	if err := bundle.Verify(); err != nil {
 		log.Info("bundle verification failed: ", bundle.Name)
 	}
+
 	return nil
 }
 
-func CreateBundlePath(bundleName, apiID string) string {
+// CreateBundlePath returns the absolute path for a bundle, consisting of the combined API ID and hashed bundle name.
+func CreateBundlePath(bundleName, apiID string) (string, error) {
 	tykBundlePath := filepath.Join(config.GetConf().Mserv.MiddlewarePath, "plugins")
 	bundleNameHash := md5.New()
-	io.WriteString(bundleNameHash, bundleName)
+
+	if _, err := io.WriteString(bundleNameHash, bundleName); err != nil {
+		return "", fmt.Errorf("could not write to hash: %w", err)
+	}
+
 	bundlePath := fmt.Sprintf("%s_%x", apiID, bundleNameHash.Sum(nil))
-	return filepath.Join(tykBundlePath, bundlePath)
+
+	return filepath.Join(tykBundlePath, bundlePath), nil
 }
 
 func LoadBundle(apiID, bundleName string) (*Bundle, error) {
-	destPath := CreateBundlePath(bundleName, apiID)
-
-	_, err := os.Stat(destPath)
+	destPath, err := CreateBundlePath(bundleName, apiID)
 	if err != nil {
 		return nil, err
+	}
+
+	if _, errStat := os.Stat(destPath); errStat != nil {
+		return nil, fmt.Errorf("could not stat '%s': %w", destPath, errStat)
 	}
 
 	// The bundle exists, load and return:
@@ -240,7 +252,11 @@ func LoadBundle(apiID, bundleName string) (*Bundle, error) {
 }
 
 func SaveBundleZip(bundle *Bundle, apiID, bundleName string) error {
-	destPath := CreateBundlePath(bundleName, apiID)
+	destPath, err := CreateBundlePath(bundleName, apiID)
+	if err != nil {
+		return err
+	}
+
 	if err := os.MkdirAll(destPath, 0700); err != nil {
 		return errors.New("couldn't create bundle directory")
 	}
@@ -249,11 +265,10 @@ func SaveBundleZip(bundle *Bundle, apiID, bundleName string) error {
 		return err
 	}
 
-	// Set the destination path:
+	// Set the destination path
 	bundle.Path = destPath
 
 	if loadErr := LoadBundleManifest(bundle, false); loadErr != nil {
-
 		if err := os.RemoveAll(bundle.Path); err != nil {
 			return fmt.Errorf("%s, %s", loadErr.Error(), err.Error())
 		}
@@ -261,6 +276,7 @@ func SaveBundleZip(bundle *Bundle, apiID, bundleName string) error {
 		return loadErr
 	}
 
-	log.Info("bundle is valid")
+	log.WithField("bundle-name", bundleName).Info("bundle is valid")
+
 	return nil
 }

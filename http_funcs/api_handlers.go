@@ -1,17 +1,22 @@
 package http_funcs
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jpillora/overseer"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
+
+// UploadFormField is the name of the field/multi-part section which contains the file bytes.
+const UploadFormField = "uploadfile"
 
 func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 	// Save the file to disk
@@ -19,7 +24,7 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 		return "", err
 	}
 
-	uploadedFile, _, err := r.FormFile("uploadfile")
+	uploadedFile, _, err := r.FormFile(UploadFormField)
 	if err != nil {
 		return "", err
 	}
@@ -27,10 +32,24 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 	defer uploadedFile.Close()
 
 	tmpDir := path.Join(os.TempDir(), "mserv-bundles")
-	if err := os.Mkdir(tmpDir, 0700); err != nil {
-		if !os.IsExist(err) {
-			return "", err
+	if errMkdir := os.Mkdir(tmpDir, 0700); errMkdir != nil {
+		if !os.IsExist(errMkdir) {
+			return "", fmt.Errorf("could not make directory '%s': %w", tmpDir, errMkdir)
 		}
+
+		log.WithField("path", tmpDir).Info("directory already exists")
+	}
+
+	mimeCheck := &bytes.Buffer{}
+	if _, errCopy := io.Copy(mimeCheck, uploadedFile); errCopy != nil {
+		return "", fmt.Errorf("could not copy uploaded file into buffer: %w", errCopy)
+	}
+
+	mimeBytes := mimeCheck.Bytes()
+	if uploadMIMEType := http.DetectContentType(mimeBytes); strings.HasPrefix(uploadMIMEType, mimeGeneric) {
+		return "", ErrGenericMimeDetected
+	} else if !strings.HasPrefix(uploadMIMEType, mimeZIP) {
+		return "", fmt.Errorf("%w: %s", ErrUploadNotZip, uploadMIMEType)
 	}
 
 	tmpFile, err := ioutil.TempFile(tmpDir, "bundle-*.zip")
@@ -39,8 +58,11 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 	}
 	defer tmpFile.Close()
 
-	_, err = io.Copy(tmpFile, uploadedFile)
-	if err != nil {
+	if _, err := io.Copy(tmpFile, bytes.NewBuffer(mimeBytes)); err != nil {
+		if errRemove := os.Remove(tmpFile.Name()); errRemove != nil && !os.IsNotExist(errRemove) {
+			log.WithError(errRemove).WithField("temp-file", tmpFile.Name()).Warning("could not remove temp file")
+		}
+
 		return "", err
 	}
 
@@ -48,8 +70,8 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 }
 
 // swagger:route POST /api/mw mw mwAdd
-// Adds a new middleware. If `store_only` field is true it will only be available for download.
-// Expects a file bundle in `uploadfile` form field.
+// Adds a new middleware. If `store_only` field is 'true' then it will only be available for download.
+// Expects a zipped file bundle in the `uploadfile` form field.
 //
 // Security:
 //   api_key:
@@ -65,26 +87,24 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 		h.HandleError(err, w, r)
 		return
 	}
-	log.Info("saved bundle to ", tmpFileLoc)
 
-	storeOnly := r.FormValue("store_only")
-	bundleName := uuid.NewV4().String()
+	log.WithField("path", tmpFileLoc).Info("saved bundle")
 
-	if storeOnly == "true" {
-		// This is a python or JS bundle, just proxy it to a store
-		mw, err := h.api.StoreBundleOnly(tmpFileLoc, apiID, bundleName)
-		if err != nil {
-			h.HandleError(err, w, r)
-			return
+	defer func() {
+		if errRemove := os.Remove(tmpFileLoc); errRemove != nil && !os.IsNotExist(errRemove) {
+			log.WithError(errRemove).WithField("temp-file", tmpFileLoc).Warning("could not remove temp file")
 		}
+	}()
 
-		ret := map[string]interface{}{"BundleID": mw.UID}
-		h.HandleOK(ret, w, r)
-		return
+	// By default, assume this is a plugin bundle
+	processor := h.api.HandleNewBundle
+
+	if r.FormValue("store_only") == "true" {
+		// If this flag is set then we just need to proxy it to a store
+		processor = h.api.StoreBundleOnly
 	}
 
-	// This is a plugin bundle (.so) so we should process it differently
-	mw, err := h.api.HandleNewBundle(tmpFileLoc, apiID, bundleName)
+	mw, err := processor(tmpFileLoc, apiID, uuid.NewV4().String())
 	if err != nil {
 		h.HandleError(err, w, r)
 		return
@@ -118,6 +138,12 @@ func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 		h.HandleError(err, w, r)
 		return
 	}
+
+	defer func() {
+		if errRemove := os.Remove(tmpFileLoc); errRemove != nil && !os.IsNotExist(errRemove) {
+			log.WithError(errRemove).WithField("temp-file", tmpFileLoc).Warning("could not remove temp file")
+		}
+	}()
 
 	mw, err := h.api.HandleUpdateBundle(tmpFileLoc, id)
 	if err != nil {
