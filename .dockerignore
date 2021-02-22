@@ -3,6 +3,7 @@ mserv
 mservctl
 
 # Makefile things
+/hack/bin/
 /out/
 /tmp/
 
