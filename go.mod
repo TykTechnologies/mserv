@@ -1,6 +1,6 @@
 module github.com/TykTechnologies/mserv
 
-go 1.13
+go 1.15
 
 require (
 	github.com/TykTechnologies/gojsonschema v0.0.0-20170222154038-dcb3e4bb7990 // indirect
