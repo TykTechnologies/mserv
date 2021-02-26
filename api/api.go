@@ -14,7 +14,6 @@ import (
 	"github.com/graymeta/stow"
 	"github.com/graymeta/stow/local"
 	"github.com/graymeta/stow/s3"
-	"github.com/jpillora/overseer"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/TykTechnologies/mserv/bundle"
@@ -224,9 +223,6 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 		return nil, err
 	}
 
-	// Call a proc restart
-	log.Info("sending SIGUSR2")
-	overseer.Restart()
 	return mw, nil
 }
 
