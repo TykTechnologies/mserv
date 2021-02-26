@@ -36,10 +36,7 @@ var (
 
 func main() {
 	conf := config.GetConf()
-	log.Info("http addr is: ", conf.Mserv.HttpAddr)
-	if conf.Mserv.GrpcServer.Enabled {
-		log.Info("grpc addr is: ", conf.Mserv.GrpcServer.Address)
-	}
+
 	overseer.Run(overseer.Config{
 		Program: prog,
 		Addresses: []string{
@@ -121,17 +118,22 @@ func prog(state overseer.State) {
 		lis, _ := net.Listen("tcp", grpcAddr)
 		go startGRPCServer(lis, grpcAddr)
 		health.GrpcStarted()
+
+		log.WithField("address", conf.Mserv.GrpcServer.Address).Info("GRPC listening")
 	}
 
 	// Wait to quit
-	log.Info("Ready. Press Ctrl+C to end")
 	waitForCtrlC()
-	fmt.Printf("\n")
+	fmt.Println()
 }
 
 func pollForActiveMWs(store storage.MservStore) {
+	interval := time.Second * 5
+
+	log.WithField("interval", interval).Info("polling for changes in active middleware")
+
 	for {
-		time.Sleep(time.Second * 5)
+		time.Sleep(interval)
 
 		alPLs, err := store.GetAllActive()
 		if err != nil {
@@ -151,7 +153,10 @@ func pollForActiveMWs(store storage.MservStore) {
 				grpcServer.GracefulStop()
 			}
 
+			log.Info("active middleware change(s) detected; calling overseer for restart")
 			overseer.Restart()
+		} else {
+			log.Debug("no changes in active middleware")
 		}
 	}
 }
@@ -278,13 +283,17 @@ func fetchAndProcessPlugins(alPLs []*storage.MW) error {
 
 func waitForCtrlC() {
 	var endWaiter sync.WaitGroup
+
 	endWaiter.Add(1)
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt)
+
 	go func() {
 		<-signalChannel
 		endWaiter.Done()
 	}()
+
+	log.Info("press Ctrl+C to end")
 	endWaiter.Wait()
 }

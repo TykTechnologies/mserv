@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/TykTechnologies/mserv/api"
 	"github.com/TykTechnologies/mserv/health"
@@ -115,7 +116,24 @@ func (h *HttpServ) writeToClient(w http.ResponseWriter, r *http.Request, payload
 }
 
 func setupGlobalMiddleware(handler http.Handler) http.Handler {
-	handleCORS := cors.Default().Handler
+	co := cors.Options{
+		Debug: log.Logger.GetLevel() >= logrus.DebugLevel,
+	}
+
+	cn := cors.New(co)
+	cn.Log = &corsDebugWrapper{logger: log}
+
+	handleCORS := cn.Handler
 
 	return handleCORS(handler)
+}
+
+// corsDebugWrapper implements the cors.Logger interface and routes debug logs through the given logger.
+type corsDebugWrapper struct {
+	logger *logrus.Entry
+}
+
+// Printf forwards debugging messages to the logger's debug log level.
+func (w *corsDebugWrapper) Printf(format string, args ...interface{}) {
+	w.logger.Debugf(format, args...)
 }

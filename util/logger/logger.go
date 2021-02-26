@@ -28,8 +28,7 @@ func GetLogger(tag string) *logrus.Entry {
 
 	logger := logrus.New()
 	logger.SetLevel(level)
+	logger.SetReportCaller(level >= logrus.DebugLevel)
 
-	log := logger.WithField("app", tag)
-
-	return log
+	return logger.WithField("app", tag)
 }

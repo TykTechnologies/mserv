@@ -34,10 +34,10 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 	tmpDir := path.Join(os.TempDir(), "mserv-bundles")
 	if errMkdir := os.Mkdir(tmpDir, 0700); errMkdir != nil {
 		if !os.IsExist(errMkdir) {
-			return "", fmt.Errorf("could not make directory '%s': %w", tmpDir, errMkdir)
+			return "", fmt.Errorf("could not make temp directory '%s': %w", tmpDir, errMkdir)
 		}
 
-		log.WithField("path", tmpDir).Info("directory already exists")
+		log.WithField("path", tmpDir).Info("temp directory already exists")
 	}
 
 	mimeCheck := &bytes.Buffer{}

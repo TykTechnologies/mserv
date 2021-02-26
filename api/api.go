@@ -67,7 +67,8 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 		return nil, err
 	}
 
-	log.Info("read bundle: ", filePath)
+	log.WithField("path", filePath).Info("read bundle")
+
 	// Create a bundle object and provide a name
 	bdl := &bundle.Bundle{
 		Data: bData,
@@ -79,7 +80,8 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	if err != nil {
 		return nil, err
 	}
-	log.Info("saved zip: ", bdl.Path)
+
+	log.WithField("bundle-path", bdl.Path).Info("saved zip")
 
 	// create DB record of the bundle
 	mw := &storage.MW{

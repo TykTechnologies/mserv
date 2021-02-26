@@ -94,9 +94,7 @@ func initMservApi() {
 
 	tr := httptransport.NewWithClient(endpoint.Host, endpoint.Path, []string{endpoint.Scheme}, tlsClient)
 	tr.SetLogger(log)
-	if log.Logger.GetLevel() == logrus.DebugLevel {
-		tr.SetDebug(true)
-	}
+	tr.SetDebug(log.Logger.GetLevel() >= logrus.DebugLevel)
 
 	mservapi = client.New(tr, nil)
 }

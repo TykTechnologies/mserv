@@ -95,9 +95,7 @@ func (c *Client) InitMservStore(tag string) error {
 
 	tr := httptransport.New(endpoint.Host, endpoint.Path, []string{endpoint.Scheme})
 	tr.SetLogger(log)
-	if log.Logger.GetLevel() == logrus.DebugLevel {
-		tr.SetDebug(true)
-	}
+	tr.SetDebug(log.Logger.GetLevel() >= logrus.DebugLevel)
 
 	c.mservapi = client.New(tr, nil)
 
