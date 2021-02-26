@@ -31,9 +31,7 @@ import (
 var (
 	moduleName = "mserv.main"
 	log        = logger.GetLogger(moduleName)
-
-	httpServerAddr = ":8989"
-	grpcServer     *grpc.Server
+	grpcServer *grpc.Server
 )
 
 func main() {
@@ -71,11 +69,7 @@ func prog(state overseer.State) {
 		log.Fatal("store failed to init: ", err)
 	}
 
-	if conf.Mserv.HttpAddr != "" {
-		httpServerAddr = conf.Mserv.HttpAddr
-	}
-
-	srv := http_funcs.NewServer(httpServerAddr, store)
+	srv := http_funcs.NewServer(conf.Mserv.HTTPAddr, store)
 	mux := http_funcs.GetRouter()
 
 	// start required endpoints
@@ -88,7 +82,7 @@ func prog(state overseer.State) {
 	}
 
 	go func() {
-		log.Info("starting HTTP server on ", httpServerAddr)
+		log.WithField("address", conf.Mserv.HTTPAddr).Info("HTTP listening")
 
 		err = srv.Listen(mux, state.Listener)
 		if err != nil {

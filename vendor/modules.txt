@@ -194,7 +194,7 @@ github.com/jpillora/overseer
 github.com/jpillora/overseer/fetcher
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 github.com/kardianos/osext
-# github.com/kelseyhightower/envconfig v1.2.0
+# github.com/kelseyhightower/envconfig v1.4.0
 ## explicit
 github.com/kelseyhightower/envconfig
 # github.com/konsorten/go-windows-terminal-sequences v1.0.1

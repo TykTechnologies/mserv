@@ -19,13 +19,13 @@ type AWSS3 struct {
 }
 
 type LocalStore struct {
-	ConfigKeyPath string
+	ConfigKeyPath string `default:"/tmp/mserv/filestore-local"`
 }
 
 type FileStorage struct {
-	Kind  string
 	S3    *AWSS3
 	Local *LocalStore
+	Kind  string `default:"local"`
 }
 
 // MservConf describes the settings required for an Mserv instance
@@ -34,15 +34,16 @@ type MservConf struct {
 	StoreType  StorageDriver
 
 	AllowHttpInvocation bool
-	HttpAddr            string
-	GrpcServer          struct {
-		Enabled bool
+	HTTPAddr            string `default:":8989"`
+
+	GrpcServer struct {
 		Address string
+		Enabled bool
 	}
 
 	PublicKeyPath  string
-	MiddlewarePath string
-	PluginDir      string
+	MiddlewarePath string `default:"/tmp/mserv/middleware"`
+	PluginDir      string `default:"/tmp/mserv/plugins"`
 
 	FileStore *FileStorage
 }
@@ -71,8 +72,6 @@ var GetConf = func() *Config {
 		if err := envconfig.Process(envPrefix, sConf); err != nil {
 			log.WithError(err).Fatal("failed to process config env vars")
 		}
-
-		SetDefaults()
 	}
 
 	return sConf
@@ -90,24 +89,4 @@ var GetSubConf = func(in interface{}, envTag string) error {
 	}
 
 	return nil
-}
-
-func SetDefaults() {
-	if sConf.Mserv.PluginDir == "" {
-		sConf.Mserv.PluginDir = "/tmp/mserv-plugins"
-	}
-
-	if sConf.Mserv.MiddlewarePath == "" {
-		sConf.Mserv.MiddlewarePath = "/tmp/mserv-middleware"
-	}
-
-	if sConf.Mserv.FileStore.Kind == "" {
-		log.Warning("file store is set to nil, setting to local FS")
-		sConf.Mserv.FileStore = &FileStorage{
-			Kind: "local",
-			Local: &LocalStore{
-				ConfigKeyPath: "files",
-			},
-		}
-	}
 }

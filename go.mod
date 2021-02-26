@@ -22,7 +22,7 @@ require (
 	github.com/graymeta/stow v0.2.4
 	github.com/hashicorp/terraform v0.12.20 // indirect
 	github.com/jpillora/overseer v0.0.0-20191216115108-e26c3c66567f
-	github.com/kelseyhightower/envconfig v1.2.0
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lonelycode/go-uuid v0.0.0-20141202165402-ed3ca8a15a93 // indirect
 	github.com/lonelycode/osin v0.0.0-20160423095202-da239c9dacb6 // indirect
 	github.com/matryer/is v1.4.0

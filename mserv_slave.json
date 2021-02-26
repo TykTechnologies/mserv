@@ -4,7 +4,7 @@
     "StoreType": "Service",
     "PluginDir": "/downloads",
     "AllowHttpInvocation": false,
-    "HttpAddr": ":9090",
+    "HTTPAddr": ":9090",
     "GrpcAddr": ":9191",
     "PublicKeyPath": "",
     "MiddlewarePath": "/plugins"
