@@ -67,10 +67,14 @@ func setupAddMWServer(t *testing.T) *http_funcs.HttpServ {
 	cfg.Mserv.FileStore.Local.ConfigKeyPath = filepath.Join(testTemp, "files")
 	cfg.Mserv.MiddlewarePath = filepath.Join(testTemp, "middleware")
 	cfg.Mserv.PluginDir = filepath.Join(testTemp, "plugins")
+	cfg.Mserv.RetainUploads = false // would default to false anyway, but we set it explicitly for these tests
+
+	fileCountPath := filepath.Join(cfg.Mserv.MiddlewarePath, "plugins")
+	is.NoErr(os.MkdirAll(fileCountPath, 0o700)) // could not prepare upload directory
 
 	cfgBytes, err := json.Marshal(cfg)
-	is.NoErr(err)                                           // could not marshal config struct
-	is.NoErr(ioutil.WriteFile(cfgFilePath, cfgBytes, 0600)) // could not write config out to file
+	is.NoErr(err)                                            // could not marshal config struct
+	is.NoErr(ioutil.WriteFile(cfgFilePath, cfgBytes, 0o600)) // could not write config out to file
 
 	// Return a new server
 	return http_funcs.NewServer("http://mserv.io", &mock.Storage{})
@@ -155,7 +159,7 @@ func TestAddMWHandleNewBundle(t *testing.T) {
 
 		finishCount, err := ioutil.ReadDir(fileCountPath)
 		is.NoErr(err)                               // could not read 'config.Mserv.MiddlewarePath+"/plugins"' directory
-		is.Equal(len(startCount), len(finishCount)) // the 'HandleNewBundle' code path should not leave files behind
+		is.Equal(len(startCount), len(finishCount)) // should not leave uploads behind unless configured to do so
 	})
 }
 
