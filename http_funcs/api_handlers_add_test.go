@@ -76,6 +76,30 @@ func setupAddMWServer(t *testing.T) *http_funcs.HttpServ {
 	return http_funcs.NewServer("http://mserv.io", &mock.Storage{})
 }
 
+func prepareRequest(t *testing.T, getAttachment func(*testing.T) []byte) *http.Request {
+	t.Helper()
+	is := is.New(t)
+
+	// Get the attachment ready
+	reqBody := &bytes.Buffer{}
+	writer := multipart.NewWriter(reqBody)
+	part, err := writer.CreateFormFile(http_funcs.UploadFormField, "attachment.zip")
+	is.NoErr(err) // could not create part for file being uploaded
+
+	size, err := part.Write(getAttachment(t))
+	is.NoErr(err) // could not write test attachment file bytes to multipart
+
+	is.NoErr(writer.Close()) // could not close multipart writer cleanly
+	t.Logf("attachment size is '%d' bytes", size)
+
+	// Get the request ready with the attachment
+	req := httptest.NewRequest(http.MethodPost, "http://mserv.io/api/mw", reqBody)
+	req.Header.Add("Content-Type", writer.FormDataContentType())
+	is.NoErr(req.ParseForm()) // could not parse form on HTTP request
+
+	return req
+}
+
 func TestAddMWStoreBundleOnly(t *testing.T) {
 	is := is.New(t)
 	srv := setupAddMWServer(t)
@@ -83,23 +107,7 @@ func TestAddMWStoreBundleOnly(t *testing.T) {
 	for name, tc := range addMWTestCases {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
-			// Get the attachment ready
-			reqBody := &bytes.Buffer{}
-			writer := multipart.NewWriter(reqBody)
-			part, err := writer.CreateFormFile(http_funcs.UploadFormField, "attachment.zip")
-			is.NoErr(err) // could not create part for file being uploaded
-
-			size, err := part.Write(tc.testBodyBytes(t))
-			is.NoErr(err) // could not write compressed test file data to multipart
-
-			is.NoErr(writer.Close()) // could not close multipart writer cleanly
-			t.Logf("attachment size is '%d' bytes", size)
-
-			// Get the request ready with the attachment
-			req := httptest.NewRequest(http.MethodPost, "http://mserv.io/api/mw", reqBody)
-			req.Header.Add("Content-Type", writer.FormDataContentType())
-
-			is.NoErr(req.ParseForm())          // could not parse form on HTTP request
+			req := prepareRequest(t, tc.testBodyBytes)
 			req.Form.Add("store_only", "true") // target the 'StoreBundleOnly' code path
 
 			// Handle the request
@@ -124,23 +132,7 @@ func TestAddMWHandleNewBundle(t *testing.T) {
 	srv := setupAddMWServer(t)
 
 	t.Run("Compressed (ZIP) upload is OK", func(t *testing.T) {
-		// Get the attachment ready
-		reqBody := &bytes.Buffer{}
-		writer := multipart.NewWriter(reqBody)
-		part, err := writer.CreateFormFile(http_funcs.UploadFormField, "attachment.zip")
-		is.NoErr(err) // could not create part for file being uploaded
-
-		size, err := part.Write(compressedTestData(t))
-		is.NoErr(err) // could not write compressed test file data to multipart
-
-		is.NoErr(writer.Close()) // could not close multipart writer cleanly
-		t.Logf("attachment size is '%d' bytes", size)
-
-		// Get the request ready with the attachment
-		req := httptest.NewRequest(http.MethodPost, "http://mserv.io/api/mw", reqBody)
-		req.Header.Add("Content-Type", writer.FormDataContentType())
-
-		is.NoErr(req.ParseForm())           // could not parse form on HTTP request
+		req := prepareRequest(t, compressedTestData)
 		req.Form.Add("store_only", "false") // target the 'HandleNewBundle' code path
 
 		// Handle the request
