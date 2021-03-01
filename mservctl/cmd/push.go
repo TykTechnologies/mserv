@@ -3,8 +3,9 @@ package cmd
 import (
 	"os"
 
-	"github.com/TykTechnologies/mserv/mservclient/client/mw"
 	"github.com/spf13/cobra"
+
+	"github.com/TykTechnologies/mserv/mservclient/client/mw"
 )
 
 // pushCmd represents the push command
@@ -36,6 +37,7 @@ func pushMiddleware(cmd *cobra.Command, args []string) {
 	storeOnly := cmd.Flag("storeonly").Value.String() == "true"
 
 	params := mw.NewMwAddParams().WithUploadFile(file).WithAPIID(&apiID).WithStoreOnly(&storeOnly)
+
 	resp, err := mservapi.Mw.MwAdd(params, defaultAuth())
 	if err != nil {
 		log.WithError(err).Error("Couldn't push middleware")

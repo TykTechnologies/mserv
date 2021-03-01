@@ -39,10 +39,8 @@ func main() {
 
 	overseer.Run(overseer.Config{
 		Program: prog,
-		Addresses: []string{
-			conf.Mserv.HttpAddr,
-		},
-		Debug: true,
+		Address: conf.Mserv.HTTPAddr,
+		Debug:   true,
 	})
 }
 
@@ -81,8 +79,7 @@ func prog(state overseer.State) {
 	go func() {
 		log.WithField("address", conf.Mserv.HTTPAddr).Info("HTTP listening")
 
-		err = srv.Listen(mux, state.Listener)
-		if err != nil {
+		if err := srv.Listen(mux, state.Listener); err != nil {
 			log.Fatal(err)
 		}
 

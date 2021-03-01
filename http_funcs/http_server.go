@@ -44,12 +44,7 @@ func (h *HttpServ) Listen(m *mux.Router, l net.Listener) error {
 		ReadTimeout:  1 * time.Minute,
 	}
 
-	err := srv.Serve(l)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return srv.Serve(l)
 }
 
 // swagger:route GET /health system health

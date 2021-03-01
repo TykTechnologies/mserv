@@ -94,7 +94,6 @@ func (b *Bundle) Verify() error {
 		if err := bundleVerifier.Verify(bundleData.Bytes(), signed); err != nil {
 			return err
 		}
-
 	}
 
 	return nil
@@ -170,7 +169,7 @@ func (ZipBundleSaver) Save(bundle *Bundle, bundlePath string) error {
 	return nil
 }
 
-// saveBundle will save a bundle to the disk, see ZipBundleSaver methods for reference.
+// SaveBundle will save a bundle to the disk, see ZipBundleSaver methods for reference.
 func SaveBundle(bundle *Bundle, destPath string) error {
 	bundleFormat := "zip"
 
@@ -186,7 +185,7 @@ func SaveBundle(bundle *Bundle, destPath string) error {
 	return nil
 }
 
-// loadBundleManifest will parse the manifest file and return the bundle parameters.
+// LoadBundleManifest will parse the manifest file and return the bundle parameters.
 func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
 	fLog := log.WithFields(logrus.Fields{"bundle-name": bundle.Name, "bundle-path": bundle.Path})
 
