@@ -132,6 +132,10 @@ func TestAddMWHandleNewBundle(t *testing.T) {
 	srv := setupAddMWServer(t)
 
 	t.Run("Compressed (ZIP) upload is OK", func(t *testing.T) {
+		fileCountPath := filepath.Join(config.GetConf().Mserv.MiddlewarePath, "plugins")
+		startCount, err := ioutil.ReadDir(fileCountPath)
+		is.NoErr(err) // could not read 'config.Mserv.MiddlewarePath+"/plugins"' directory
+
 		req := prepareRequest(t, compressedTestData)
 		req.Form.Add("store_only", "false") // target the 'HandleNewBundle' code path
 
@@ -148,6 +152,10 @@ func TestAddMWHandleNewBundle(t *testing.T) {
 		bod, errRead := ioutil.ReadAll(resp.Body)
 		is.NoErr(errRead) // could not read response body
 		t.Logf("response: %s %s", resp.Status, bod)
+
+		finishCount, err := ioutil.ReadDir(fileCountPath)
+		is.NoErr(err)                               // could not read 'config.Mserv.MiddlewarePath+"/plugins"' directory
+		is.Equal(len(startCount), len(finishCount)) // the 'HandleNewBundle' code path should not leave files behind
 	})
 }
 
