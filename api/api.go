@@ -225,6 +225,12 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 		return nil, err
 	}
 
+	if !config.GetConf().Mserv.RetainUploads {
+		if err := os.RemoveAll(bdl.Path); err != nil && !os.IsNotExist(err) {
+			return nil, fmt.Errorf("could not clean up uploaded bundle: %w", err)
+		}
+	}
+
 	return mw, nil
 }
 

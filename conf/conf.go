@@ -45,6 +45,8 @@ type MservConf struct {
 	MiddlewarePath string `default:"/tmp/mserv/middleware"`
 	PluginDir      string `default:"/tmp/mserv/plugins"`
 
+	RetainUploads bool
+
 	FileStore *FileStorage
 }
 
