@@ -180,9 +180,8 @@ func SaveBundle(bundle *Bundle, destPath string) error {
 	case "zip":
 		bundleSaver = ZipBundleSaver{}
 	}
-	bundleSaver.Save(bundle, destPath)
 
-	return nil
+	return bundleSaver.Save(bundle, destPath)
 }
 
 // LoadBundleManifest will parse the manifest file and return the bundle parameters.
