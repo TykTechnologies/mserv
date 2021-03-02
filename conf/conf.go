@@ -1,8 +1,9 @@
-// package config provides the basic configuration for momo
+// Package config provides basic configuration plumbing.
 package config
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -54,11 +55,14 @@ type Config struct {
 	Mserv MservConf
 }
 
-var (
-	sConf      *Config
-	moduleName = "mserv.config"
+const (
 	envPrefix  = "MS"
-	log        = logger.GetLogger(moduleName)
+	moduleName = "mserv.config"
+)
+
+var (
+	sConf *Config
+	log   = logger.GetLogger(moduleName)
 )
 
 // GetConf will get the config data for the MServ server
@@ -66,13 +70,12 @@ var GetConf = func() *Config {
 	if sConf == nil {
 		sConf = &Config{}
 
-		err := json.Unmarshal(conf.ReadConf(), sConf)
-		if err != nil {
-			log.WithError(err).Fatal("failed to unmarshal mserv driver config")
-		}
-
 		if err := envconfig.Process(envPrefix, sConf); err != nil {
 			log.WithError(err).Fatal("failed to process config env vars")
+		}
+
+		if err := json.Unmarshal(conf.ReadConf(), sConf); err != nil {
+			log.WithError(err).Fatal("failed to unmarshal mserv driver config")
 		}
 	}
 
@@ -81,13 +84,12 @@ var GetConf = func() *Config {
 
 // GetConf will get the config data for the Momo Driver
 var GetSubConf = func(in interface{}, envTag string) error {
-	err := json.Unmarshal(conf.ReadConf(), in)
-	if err != nil {
-		return err
+	if err := envconfig.Process(envTag, in); err != nil {
+		log.WithError(err).Fatal("failed to process config env vars")
 	}
 
-	if err := envconfig.Process(envTag, in); err != nil {
-		log.Fatalf("failed to process config env vars: %v", err)
+	if err := json.Unmarshal(conf.ReadConf(), in); err != nil {
+		return fmt.Errorf("failed to unmarshal mserv driver config: %w", err)
 	}
 
 	return nil
