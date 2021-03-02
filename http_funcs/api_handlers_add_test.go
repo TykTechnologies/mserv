@@ -49,7 +49,7 @@ var addMWTestCases = map[string]addMWTestCase{
 	},
 }
 
-func setupAddMWServer(t *testing.T) *http_funcs.HttpServ {
+func setupServerAndTempDir(t *testing.T) (*http_funcs.HttpServ, string) {
 	t.Helper()
 	is := is.New(t)
 
@@ -76,8 +76,9 @@ func setupAddMWServer(t *testing.T) *http_funcs.HttpServ {
 	is.NoErr(err)                                            // could not marshal config struct
 	is.NoErr(ioutil.WriteFile(cfgFilePath, cfgBytes, 0o600)) // could not write config out to file
 
-	// Return a new server
-	return http_funcs.NewServer("http://mserv.io", &mock.Storage{})
+	// Return a new server, and the upload path to check (this is a workaround for config.GetConf() only running once per
+	// package call, and not on every call)
+	return http_funcs.NewServer("http://mserv.io", &mock.Storage{}), fileCountPath
 }
 
 func prepareRequest(t *testing.T, getAttachment func(*testing.T) []byte) *http.Request {
@@ -106,7 +107,7 @@ func prepareRequest(t *testing.T, getAttachment func(*testing.T) []byte) *http.R
 
 func TestAddMWStoreBundleOnly(t *testing.T) {
 	is := is.New(t)
-	srv := setupAddMWServer(t)
+	srv, _ := setupServerAndTempDir(t)
 
 	for name, tc := range addMWTestCases {
 		name, tc := name, tc
@@ -133,10 +134,9 @@ func TestAddMWStoreBundleOnly(t *testing.T) {
 
 func TestAddMWHandleNewBundle(t *testing.T) {
 	is := is.New(t)
-	srv := setupAddMWServer(t)
+	srv, fileCountPath := setupServerAndTempDir(t)
 
 	t.Run("Compressed (ZIP) upload is OK", func(t *testing.T) {
-		fileCountPath := filepath.Join(config.GetConf().Mserv.MiddlewarePath, "plugins")
 		startCount, err := ioutil.ReadDir(fileCountPath)
 		is.NoErr(err) // could not read 'config.Mserv.MiddlewarePath+"/plugins"' directory
 
