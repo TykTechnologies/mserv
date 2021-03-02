@@ -1,0 +1,21 @@
+{
+  "Mserv": {
+    "AllowHttpInvocation": false,
+    "FileStore": {
+      "Kind": "s3",
+      "S3": {
+        "ConfigAccessKeyID": "ALJBRQC3V5M8TCZHEO66",
+        "ConfigRegion": "eu-west-2",
+        "ConfigSecretKey": "75oIcEsaTcgeBlvEIyZQMy6DvvNtn7SrTjKbTbFq"
+      }
+    },
+    "Grpc": {
+      "Address": ":9898",
+      "Enabled": false
+    },
+    "MiddlewarePath": "/mnt/mserv/plugins",
+    "PublicKeyPath": "",
+    "StorageTag": "default",
+    "StoreType": "Mongo"
+  }
+}
