@@ -1,8 +1,9 @@
-// package config provides the basic configuration for momo
+// Package config provides basic configuration plumbing.
 package config
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -19,13 +20,13 @@ type AWSS3 struct {
 }
 
 type LocalStore struct {
-	ConfigKeyPath string
+	ConfigKeyPath string `default:"/tmp/mserv/filestore-local"`
 }
 
 type FileStorage struct {
-	Kind  string
 	S3    *AWSS3
 	Local *LocalStore
+	Kind  string `default:"local"`
 }
 
 // MservConf describes the settings required for an Mserv instance
@@ -34,15 +35,18 @@ type MservConf struct {
 	StoreType  StorageDriver
 
 	AllowHttpInvocation bool
-	HttpAddr            string
-	GrpcServer          struct {
-		Enabled bool
+	HTTPAddr            string `default:":8989"`
+
+	GrpcServer struct {
 		Address string
+		Enabled bool
 	}
 
 	PublicKeyPath  string
-	MiddlewarePath string
-	PluginDir      string
+	MiddlewarePath string `default:"/tmp/mserv/middleware"`
+	PluginDir      string `default:"/tmp/mserv/plugins"`
+
+	RetainUploads bool
 
 	FileStore *FileStorage
 }
@@ -51,11 +55,14 @@ type Config struct {
 	Mserv MservConf
 }
 
-var (
-	sConf      *Config
-	moduleName = "mserv.config"
+const (
 	envPrefix  = "MS"
-	log        = logger.GetLogger(moduleName)
+	moduleName = "mserv.config"
+)
+
+var (
+	sConf *Config
+	log   = logger.GetLogger(moduleName)
 )
 
 // GetConf will get the config data for the MServ server
@@ -63,16 +70,13 @@ var GetConf = func() *Config {
 	if sConf == nil {
 		sConf = &Config{}
 
-		err := json.Unmarshal(conf.ReadConf(), sConf)
-		if err != nil {
-			log.WithError(err).Fatal("failed to unmarshal mserv driver config")
-		}
-
 		if err := envconfig.Process(envPrefix, sConf); err != nil {
 			log.WithError(err).Fatal("failed to process config env vars")
 		}
 
-		SetDefaults()
+		if err := json.Unmarshal(conf.ReadConf(), sConf); err != nil {
+			log.WithError(err).Fatal("failed to unmarshal mserv driver config")
+		}
 	}
 
 	return sConf
@@ -80,34 +84,13 @@ var GetConf = func() *Config {
 
 // GetConf will get the config data for the Momo Driver
 var GetSubConf = func(in interface{}, envTag string) error {
-	err := json.Unmarshal(conf.ReadConf(), in)
-	if err != nil {
-		return err
+	if err := envconfig.Process(envTag, in); err != nil {
+		log.WithError(err).Fatal("failed to process config env vars")
 	}
 
-	if err := envconfig.Process(envTag, in); err != nil {
-		log.Fatalf("failed to process config env vars: %v", err)
+	if err := json.Unmarshal(conf.ReadConf(), in); err != nil {
+		return fmt.Errorf("failed to unmarshal mserv driver config: %w", err)
 	}
 
 	return nil
-}
-
-func SetDefaults() {
-	if sConf.Mserv.PluginDir == "" {
-		sConf.Mserv.PluginDir = "/tmp/mserv-plugins"
-	}
-
-	if sConf.Mserv.MiddlewarePath == "" {
-		sConf.Mserv.MiddlewarePath = "/tmp/mserv-middleware"
-	}
-
-	if sConf.Mserv.FileStore.Kind == "" {
-		log.Warning("file store is set to nil, setting to local FS")
-		sConf.Mserv.FileStore = &FileStorage{
-			Kind: "local",
-			Local: &LocalStore{
-				ConfigKeyPath: "files",
-			},
-		}
-	}
 }

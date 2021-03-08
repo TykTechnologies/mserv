@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -48,7 +49,8 @@ var addMWTestCases = map[string]addMWTestCase{
 	},
 }
 
-func TestAddMW(t *testing.T) {
+func setupServerAndTempDir(t *testing.T) (*http_funcs.HttpServ, string) {
+	t.Helper()
 	is := is.New(t)
 
 	// Prepare the config file and the plugin uploads directory
@@ -65,35 +67,53 @@ func TestAddMW(t *testing.T) {
 	cfg.Mserv.FileStore.Local.ConfigKeyPath = filepath.Join(testTemp, "files")
 	cfg.Mserv.MiddlewarePath = filepath.Join(testTemp, "middleware")
 	cfg.Mserv.PluginDir = filepath.Join(testTemp, "plugins")
+	cfg.Mserv.RetainUploads = false // would default to false anyway, but we set it explicitly for these tests
+
+	fileCountPath := filepath.Join(cfg.Mserv.MiddlewarePath, "plugins")
+	is.NoErr(os.MkdirAll(fileCountPath, 0o700)) // could not prepare upload directory
 
 	cfgBytes, err := json.Marshal(cfg)
-	is.NoErr(err)                                           // could not marshal config struct
-	is.NoErr(ioutil.WriteFile(cfgFilePath, cfgBytes, 0600)) // could not write config out to file
+	is.NoErr(err)                                            // could not marshal config struct
+	is.NoErr(ioutil.WriteFile(cfgFilePath, cfgBytes, 0o600)) // could not write config out to file
 
-	// Create a new server
-	srv := http_funcs.NewServer("http://mserv.io", &mock.Storage{})
+	// Return a new server, and the upload path to check (this is a workaround for config.GetConf() only running once per
+	// package call, and not on every call)
+	return http_funcs.NewServer("http://mserv.io", &mock.Storage{}), fileCountPath
+}
+
+func prepareRequest(t *testing.T, getAttachment func(*testing.T) []byte) *http.Request {
+	t.Helper()
+	is := is.New(t)
+
+	// Get the attachment ready
+	reqBody := &bytes.Buffer{}
+	writer := multipart.NewWriter(reqBody)
+	part, err := writer.CreateFormFile(http_funcs.UploadFormField, "attachment.zip")
+	is.NoErr(err) // could not create part for file being uploaded
+
+	size, err := part.Write(getAttachment(t))
+	is.NoErr(err) // could not write test attachment file bytes to multipart
+
+	is.NoErr(writer.Close()) // could not close multipart writer cleanly
+	t.Logf("attachment size is '%d' bytes", size)
+
+	// Get the request ready with the attachment
+	req := httptest.NewRequest(http.MethodPost, "http://mserv.io/api/mw", reqBody)
+	req.Header.Add("Content-Type", writer.FormDataContentType())
+	is.NoErr(req.ParseForm()) // could not parse form on HTTP request
+
+	return req
+}
+
+func TestAddMWStoreBundleOnly(t *testing.T) {
+	is := is.New(t)
+	srv, _ := setupServerAndTempDir(t)
 
 	for name, tc := range addMWTestCases {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
-			// Get the attachment ready
-			reqBody := &bytes.Buffer{}
-			writer := multipart.NewWriter(reqBody)
-			part, err := writer.CreateFormFile(http_funcs.UploadFormField, "attachment.zip")
-			is.NoErr(err) // could not create part for file being uploaded
-
-			size, err := part.Write(tc.testBodyBytes(t))
-			is.NoErr(err) // could not write compressed test file data to multipart
-
-			is.NoErr(writer.Close()) // could not close multipart writer cleanly
-			t.Logf("attachment size is '%d' bytes", size)
-
-			// Get the request ready with the attachment
-			req := httptest.NewRequest(http.MethodPost, "http://mserv.io/api/mw", reqBody)
-			req.Header.Add("Content-Type", writer.FormDataContentType())
-
-			is.NoErr(req.ParseForm()) // could not parse form on HTTP request
-			req.Form.Add("store_only", "true")
+			req := prepareRequest(t, tc.testBodyBytes)
+			req.Form.Add("store_only", "true") // target the 'StoreBundleOnly' code path
 
 			// Handle the request
 			w := httptest.NewRecorder()
@@ -112,7 +132,38 @@ func TestAddMW(t *testing.T) {
 	}
 }
 
-func getCompressed(t *testing.T, files ...string) []byte {
+func TestAddMWHandleNewBundle(t *testing.T) {
+	is := is.New(t)
+	srv, fileCountPath := setupServerAndTempDir(t)
+
+	t.Run("Compressed (ZIP) upload is OK", func(t *testing.T) {
+		startCount, err := ioutil.ReadDir(fileCountPath)
+		is.NoErr(err) // could not read 'config.Mserv.MiddlewarePath+"/plugins"' directory
+
+		req := prepareRequest(t, compressedTestData)
+		req.Form.Add("store_only", "false") // target the 'HandleNewBundle' code path
+
+		// Handle the request
+		w := httptest.NewRecorder()
+		srv.AddMW(w, req)
+
+		// Parse the response
+		resp := w.Result()
+		defer is.NoErr(resp.Body.Close()) // could not close response body cleanly
+
+		is.Equal(http.StatusOK, resp.StatusCode) // expected response status does not equal actual
+
+		bod, errRead := ioutil.ReadAll(resp.Body)
+		is.NoErr(errRead) // could not read response body
+		t.Logf("response: %s %s", resp.Status, bod)
+
+		finishCount, err := ioutil.ReadDir(fileCountPath)
+		is.NoErr(err)                               // could not read 'config.Mserv.MiddlewarePath+"/plugins"' directory
+		is.Equal(len(startCount), len(finishCount)) // should not leave uploads behind unless configured to do so
+	})
+}
+
+func getCompressed(t *testing.T, flat bool, files ...string) []byte {
 	t.Helper()
 	is := is.New(t)
 
@@ -120,7 +171,16 @@ func getCompressed(t *testing.T, files ...string) []byte {
 	w := zip.NewWriter(&buf)
 
 	for _, file := range files {
-		f, err := w.Create(file)
+		var (
+			f   io.Writer
+			err error
+		)
+
+		if flat {
+			f, err = w.Create(filepath.Base(file))
+		} else {
+			f, err = w.Create(file)
+		}
 		is.NoErr(err) // could not create file in zip.Writer
 
 		_, err = f.Write(getUncompressed(t, file))
@@ -150,7 +210,7 @@ func getUncompressed(t *testing.T, files ...string) []byte {
 }
 
 func compressedTestData(t *testing.T) []byte {
-	return getCompressed(t, "testdata/uncompressed/manifest.json", "testdata/uncompressed/middleware.py")
+	return getCompressed(t, true, "testdata/uncompressed/manifest.json", "testdata/uncompressed/middleware.py")
 }
 
 func uncompressedTestData(t *testing.T) []byte {

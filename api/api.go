@@ -14,7 +14,6 @@ import (
 	"github.com/graymeta/stow"
 	"github.com/graymeta/stow/local"
 	"github.com/graymeta/stow/s3"
-	"github.com/jpillora/overseer"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/TykTechnologies/mserv/bundle"
@@ -68,7 +67,8 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 		return nil, err
 	}
 
-	log.Info("read bundle: ", filePath)
+	log.WithField("path", filePath).Info("read bundle")
+
 	// Create a bundle object and provide a name
 	bdl := &bundle.Bundle{
 		Data: bData,
@@ -80,7 +80,8 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	if err != nil {
 		return nil, err
 	}
-	log.Info("saved zip: ", bdl.Path)
+
+	log.WithField("bundle-path", bdl.Path).Info("saved zip")
 
 	// create DB record of the bundle
 	mw := &storage.MW{
@@ -224,9 +225,12 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 		return nil, err
 	}
 
-	// Call a proc restart
-	log.Info("sending SIGUSR2")
-	overseer.Restart()
+	if !config.GetConf().Mserv.RetainUploads {
+		if err := os.RemoveAll(bdl.Path); err != nil && !os.IsNotExist(err) {
+			return nil, fmt.Errorf("could not clean up uploaded bundle: %w", err)
+		}
+	}
+
 	return mw, nil
 }
 

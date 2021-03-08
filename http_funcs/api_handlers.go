@@ -34,10 +34,10 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 	tmpDir := path.Join(os.TempDir(), "mserv-bundles")
 	if errMkdir := os.Mkdir(tmpDir, 0700); errMkdir != nil {
 		if !os.IsExist(errMkdir) {
-			return "", fmt.Errorf("could not make directory '%s': %w", tmpDir, errMkdir)
+			return "", fmt.Errorf("could not make temp directory '%s': %w", tmpDir, errMkdir)
 		}
 
-		log.WithField("path", tmpDir).Info("directory already exists")
+		log.WithField("path", tmpDir).Info("temp directory already exists")
 	}
 
 	mimeCheck := &bytes.Buffer{}
@@ -90,18 +90,14 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 
 	log.WithField("path", tmpFileLoc).Info("saved bundle")
 
-	defer func() {
-		if errRemove := os.Remove(tmpFileLoc); errRemove != nil && !os.IsNotExist(errRemove) {
-			log.WithError(errRemove).WithField("temp-file", tmpFileLoc).Warning("could not remove temp file")
-		}
-	}()
-
-	// By default, assume this is a plugin bundle
+	// By default, assume this is a new plugin bundle, which would require a process restart
 	processor := h.api.HandleNewBundle
+	restartNeeded := true
 
 	if r.FormValue("store_only") == "true" {
-		// If this flag is set then we just need to proxy it to a store
+		// If this flag is set then we just need to proxy it to a store, and a restart is not necessary
 		processor = h.api.StoreBundleOnly
+		restartNeeded = false
 	}
 
 	mw, err := processor(tmpFileLoc, apiID, uuid.NewV4().String())
@@ -110,8 +106,21 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.WithField("path", tmpFileLoc).Debug("removing temp file")
+
+	errRemove := os.Remove(tmpFileLoc)
+	if errRemove != nil && !os.IsNotExist(errRemove) {
+		log.WithError(errRemove).WithField("temp-file", tmpFileLoc).Warning("could not remove temp file")
+	}
+
 	ret := map[string]interface{}{"BundleID": mw.UID}
 	h.HandleOK(ret, w, r)
+
+	if restartNeeded {
+		// Call a proc restart
+		log.Info("middleware added; calling overseer for restart")
+		overseer.Restart()
+	}
 }
 
 // swagger:route PUT /api/mw/{id} mw mwUpdate
@@ -139,19 +148,21 @@ func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer func() {
-		if errRemove := os.Remove(tmpFileLoc); errRemove != nil && !os.IsNotExist(errRemove) {
-			log.WithError(errRemove).WithField("temp-file", tmpFileLoc).Warning("could not remove temp file")
-		}
-	}()
-
 	mw, err := h.api.HandleUpdateBundle(tmpFileLoc, id)
 	if err != nil {
 		h.HandleError(err, w, r)
 		return
 	}
 
+	if errRemove := os.Remove(tmpFileLoc); errRemove != nil && !os.IsNotExist(errRemove) {
+		log.WithError(errRemove).WithField("temp-file", tmpFileLoc).Warning("could not remove temp file")
+	}
+
 	h.HandleOK(map[string]interface{}{"BundleID": mw.UID}, w, r)
+
+	// Call a proc restart
+	log.Info("middleware updated; calling overseer for restart")
+	overseer.Restart()
 }
 
 // swagger:route DELETE /api/mw/{id} mw mwDelete
@@ -179,6 +190,8 @@ func (h *HttpServ) DeleteMW(w http.ResponseWriter, r *http.Request) {
 
 	h.HandleOK(map[string]interface{}{"BundleID": id}, w, r)
 
+	// Call a proc restart
+	log.Info("middleware deleted; calling overseer for restart")
 	overseer.Restart()
 }
 

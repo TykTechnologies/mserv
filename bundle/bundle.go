@@ -16,6 +16,7 @@ import (
 
 	"github.com/TykTechnologies/goverify"
 	"github.com/TykTechnologies/tyk/apidef"
+	"github.com/sirupsen/logrus"
 
 	config "github.com/TykTechnologies/mserv/conf"
 	"github.com/TykTechnologies/mserv/util/logger"
@@ -76,6 +77,11 @@ func (b *Bundle) Verify() error {
 
 	checksum := fmt.Sprintf("%x", md5.Sum(bundleData.Bytes()))
 
+	log.WithFields(logrus.Fields{
+		"calculated": checksum,
+		"manifest":   b.Manifest.Checksum,
+	}).Debug("checksums")
+
 	if checksum != b.Manifest.Checksum {
 		return errors.New("invalid checksum")
 	}
@@ -88,7 +94,6 @@ func (b *Bundle) Verify() error {
 		if err := bundleVerifier.Verify(bundleData.Bytes(), signed); err != nil {
 			return err
 		}
-
 	}
 
 	return nil
@@ -164,7 +169,7 @@ func (ZipBundleSaver) Save(bundle *Bundle, bundlePath string) error {
 	return nil
 }
 
-// saveBundle will save a bundle to the disk, see ZipBundleSaver methods for reference.
+// SaveBundle will save a bundle to the disk, see ZipBundleSaver methods for reference.
 func SaveBundle(bundle *Bundle, destPath string) error {
 	bundleFormat := "zip"
 
@@ -175,14 +180,15 @@ func SaveBundle(bundle *Bundle, destPath string) error {
 	case "zip":
 		bundleSaver = ZipBundleSaver{}
 	}
-	bundleSaver.Save(bundle, destPath)
 
-	return nil
+	return bundleSaver.Save(bundle, destPath)
 }
 
-// loadBundleManifest will parse the manifest file and return the bundle parameters.
+// LoadBundleManifest will parse the manifest file and return the bundle parameters.
 func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
-	log.Info("loading bundle: ", bundle.Name)
+	fLog := log.WithFields(logrus.Fields{"bundle-name": bundle.Name, "bundle-path": bundle.Path})
+
+	fLog.Info("loading bundle")
 
 	manifestPath := filepath.Join(bundle.Path, "manifest.json")
 	f, err := os.Open(manifestPath)
@@ -192,7 +198,7 @@ func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
 	defer f.Close()
 
 	if err := json.NewDecoder(f).Decode(&bundle.Manifest); err != nil {
-		log.WithError(err).WithField("bundle-name", bundle.Name).Error("could not unmarshal the manifest file for bundle")
+		fLog.WithError(err).Error("could not unmarshal the manifest file for bundle")
 
 		return fmt.Errorf("could not unmarshal the manifest file for bundle: %w", err)
 	}
@@ -202,7 +208,7 @@ func LoadBundleManifest(bundle *Bundle, skipVerification bool) error {
 	}
 
 	if err := bundle.Verify(); err != nil {
-		log.Info("bundle verification failed: ", bundle.Name)
+		fLog.WithError(err).Info("bundle verification failed")
 	}
 
 	return nil
@@ -218,8 +224,11 @@ func CreateBundlePath(bundleName, apiID string) (string, error) {
 	}
 
 	bundlePath := fmt.Sprintf("%s_%x", apiID, bundleNameHash.Sum(nil))
+	fullBundlePath := filepath.Join(tykBundlePath, bundlePath)
 
-	return filepath.Join(tykBundlePath, bundlePath), nil
+	log.WithField("full-bundle-path", fullBundlePath).Debug("full path of bundle")
+
+	return fullBundlePath, nil
 }
 
 func LoadBundle(apiID, bundleName string) (*Bundle, error) {
@@ -264,6 +273,8 @@ func SaveBundleZip(bundle *Bundle, apiID, bundleName string) error {
 	if err := SaveBundle(bundle, destPath); err != nil {
 		return err
 	}
+
+	log.WithField("path", destPath).Debug("saved bundle to destination")
 
 	// Set the destination path
 	bundle.Path = destPath
