@@ -19,7 +19,7 @@ func TestAddMWStoreBundleOnly(t *testing.T) {
 	for name, tc := range addMWTestCases {
 		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
-			req := prepareRequest(t, tc.testBodyBytes)
+			req := prepareAddRequest(t, tc.testBodyBytes)
 			req.Form.Add("store_only", "true") // target the 'StoreBundleOnly' code path
 
 			// Handle the request
@@ -48,7 +48,7 @@ func TestAddMWHandleNewBundle(t *testing.T) {
 		startCount, err := ioutil.ReadDir(fileCountPath)
 		is.NoErr(err) // could not read 'config.Mserv.MiddlewarePath+"/plugins"' directory
 
-		req := prepareRequest(t, compressedTestData)
+		req := prepareAddRequest(t, compressedTestData)
 		req.Form.Add("store_only", "false") // target the 'HandleNewBundle' code path
 
 		// Handle the request

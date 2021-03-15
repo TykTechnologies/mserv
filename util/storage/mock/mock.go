@@ -10,7 +10,7 @@ type Storage struct{}
 
 // GetMWByID is a test mock.
 func (s *Storage) GetMWByID(id string) (*storage.MW, error) {
-	panic("TODO: Implement")
+	return &storage.MW{UID: id}, nil
 }
 
 // GetMWByAPIID is a test mock.
@@ -39,7 +39,7 @@ func (s *Storage) UpdateMW(mw *storage.MW) (string, error) {
 
 // DeleteMW is a test mock.
 func (s *Storage) DeleteMW(id string) error {
-	panic("TODO: Implement")
+	return nil
 }
 
 // InitMservStore is a test mock.

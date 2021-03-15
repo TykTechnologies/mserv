@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -14,6 +15,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/matryer/is"
 
 	config "github.com/TykTechnologies/mserv/conf"
@@ -83,7 +85,7 @@ func setupServerAndTempDir(t *testing.T) *http_funcs.HttpServ {
 	return http_funcs.NewServer("http://mserv.io", &mock.Storage{})
 }
 
-func prepareRequest(t *testing.T, getAttachment func(*testing.T) []byte) *http.Request {
+func prepareAddRequest(t *testing.T, getAttachment func(*testing.T) []byte) *http.Request {
 	t.Helper()
 	is := is.New(t)
 
@@ -103,6 +105,16 @@ func prepareRequest(t *testing.T, getAttachment func(*testing.T) []byte) *http.R
 	req := httptest.NewRequest(http.MethodPost, "http://mserv.io/api/mw", reqBody)
 	req.Header.Add("Content-Type", writer.FormDataContentType())
 	is.NoErr(req.ParseForm()) // could not parse form on HTTP request
+
+	return req
+}
+
+func prepareDeleteRequest(t *testing.T, id string) *http.Request {
+	t.Helper()
+
+	path := fmt.Sprintf("http://mserv.io/api/mw/%s", id)
+	req := httptest.NewRequest(http.MethodDelete, path, nil)
+	req = mux.SetURLVars(req, map[string]string{"id": id})
 
 	return req
 }
