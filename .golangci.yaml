@@ -49,9 +49,6 @@ linters-settings:
     line-length: 120
     tab-width: 2
 
-  maligned:
-    suggest-new: true
-
   nakedret:
     max-func-lines: 25
 
@@ -107,7 +104,6 @@ linters:
     - govet
     - ineffassign
     - lll
-    - maligned
     - nakedret
     - nestif
     - nlreturn
