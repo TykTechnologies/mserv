@@ -4,14 +4,17 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
 	"github.com/matryer/is"
+
+	config "github.com/TykTechnologies/mserv/conf"
 )
 
 func TestAddMWStoreBundleOnly(t *testing.T) {
 	is := is.New(t)
-	srv, _ := setupServerAndTempDir(t)
+	srv := setupServerAndTempDir(t)
 
 	for name, tc := range addMWTestCases {
 		name, tc := name, tc
@@ -38,9 +41,10 @@ func TestAddMWStoreBundleOnly(t *testing.T) {
 
 func TestAddMWHandleNewBundle(t *testing.T) {
 	is := is.New(t)
-	srv, fileCountPath := setupServerAndTempDir(t)
+	srv := setupServerAndTempDir(t)
 
 	t.Run("Compressed (ZIP) upload is OK", func(t *testing.T) {
+		fileCountPath := filepath.Join(config.GetConf().Mserv.MiddlewarePath, "plugins")
 		startCount, err := ioutil.ReadDir(fileCountPath)
 		is.NoErr(err) // could not read 'config.Mserv.MiddlewarePath+"/plugins"' directory
 

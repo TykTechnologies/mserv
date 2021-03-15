@@ -49,7 +49,7 @@ var addMWTestCases = map[string]addMWTestCase{
 	},
 }
 
-func setupServerAndTempDir(t *testing.T) (*http_funcs.HttpServ, string) {
+func setupServerAndTempDir(t *testing.T) *http_funcs.HttpServ {
 	t.Helper()
 	is := is.New(t)
 
@@ -76,9 +76,11 @@ func setupServerAndTempDir(t *testing.T) (*http_funcs.HttpServ, string) {
 	is.NoErr(err)                                            // could not marshal config struct
 	is.NoErr(ioutil.WriteFile(cfgFilePath, cfgBytes, 0o600)) // could not write config out to file
 
-	// Return a new server, and the upload path to check (this is a workaround for config.GetConf() only running once per
-	// package call, and not on every call)
-	return http_funcs.NewServer("http://mserv.io", &mock.Storage{}), fileCountPath
+	// Make sure the config in use is current and aligned with what was just established here
+	config.Reload()
+
+	// Return a new server
+	return http_funcs.NewServer("http://mserv.io", &mock.Storage{})
 }
 
 func prepareRequest(t *testing.T, getAttachment func(*testing.T) []byte) *http.Request {
