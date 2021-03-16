@@ -400,7 +400,7 @@ func GetFileStore() (stow.Location, error) {
 	}
 
 	switch fsCfg.Kind {
-	case "local":
+	case local.Kind:
 		log.WithField("path", fsCfg.Local.ConfigKeyPath).Info("detected local store")
 
 		// Dialling stow/local will fail if the base directory doesn't already exist
@@ -408,13 +408,13 @@ func GetFileStore() (stow.Location, error) {
 			return nil, fmt.Errorf("%w: %s", ErrCreateLocal, fsCfg.Local.ConfigKeyPath)
 		}
 
-		return stow.Dial("local", stow.ConfigMap{
+		return stow.Dial(local.Kind, stow.ConfigMap{
 			local.ConfigKeyPath: fsCfg.Local.ConfigKeyPath,
 		})
-	case "s3":
+	case s3.Kind:
 		log.Info("detected s3 store")
 
-		return stow.Dial("s3", stow.ConfigMap{
+		return stow.Dial(s3.Kind, stow.ConfigMap{
 			s3.ConfigAccessKeyID: fsCfg.S3.ConfigAccessKeyID,
 			s3.ConfigRegion:      fsCfg.S3.ConfigRegion,
 			s3.ConfigSecretKey:   fsCfg.S3.ConfigSecretKey,
