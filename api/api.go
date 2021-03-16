@@ -71,8 +71,8 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 	}
 
 	defer func() {
-		if err := fStore.Close(); err != nil {
-			log.WithError(err).Error("error while closing file store")
+		if errFC := fStore.Close(); errFC != nil {
+			log.WithError(errFC).Error("error while closing file store")
 		}
 	}()
 
@@ -104,18 +104,18 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 	fsCfg := config.GetConf().Mserv.FileStore
 
 	if fsCfg.Kind == local.Kind {
-		prevWD, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("could not get current working directory: %w", err)
+		prevWD, errWD := os.Getwd()
+		if errWD != nil {
+			return fmt.Errorf("could not get current working directory: %w", errWD)
 		}
 
-		if err := os.Chdir(fsCfg.Local.ConfigKeyPath); err != nil {
-			return fmt.Errorf("could not change current working directory: %w", err)
+		if errCD := os.Chdir(fsCfg.Local.ConfigKeyPath); errCD != nil {
+			return fmt.Errorf("could not change current working directory: %w", errCD)
 		}
 
 		defer func() {
-			if err := os.Chdir(prevWD); err != nil {
-				log.WithError(err).Error("could not revert to previous working directory")
+			if errPD := os.Chdir(prevWD); errPD != nil {
+				log.WithError(errPD).WithField("dir", prevWD).Error("could not revert to previous working directory")
 			}
 		}()
 	}
