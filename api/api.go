@@ -59,10 +59,6 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 		return err
 	}
 
-	if errDMW := a.store.DeleteMW(mw.UID); errDMW != nil {
-		return fmt.Errorf("could not delete middleware from store: %w", errDMW)
-	}
-
 	fStore, err := GetFileStore()
 	if err != nil {
 		log.WithError(err).Error("failed to get file handle")
@@ -122,7 +118,11 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 
 	// HACK: workaround for https://github.com/graymeta/stow/issues/239 - ^^^
 
-	return fStore.RemoveContainer(pluginContainerID)
+	if errRC := fStore.RemoveContainer(pluginContainerID); errRC != nil {
+		return fmt.Errorf("could not remove container '%s': %w", pluginContainerID, errRC)
+	}
+
+	return a.store.DeleteMW(mw.UID)
 }
 
 func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*storage.MW, error) {
