@@ -25,8 +25,10 @@ import (
 )
 
 const (
-	fmtPluginContainer = "mserv-plugin-%s"
-	moduleName         = "mserv.api"
+	// FmtPluginContainer is a format string for the layout of the container names.
+	FmtPluginContainer = "mserv-plugin-%s"
+
+	moduleName = "mserv.api"
 )
 
 var log = logger.GetLogger(moduleName)
@@ -72,7 +74,7 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 		}
 	}()
 
-	pluginContainerID := fmt.Sprintf(fmtPluginContainer, bundleName)
+	pluginContainerID := fmt.Sprintf(FmtPluginContainer, bundleName)
 
 	fCont, err := fStore.Container(pluginContainerID)
 	if err != nil {
@@ -178,7 +180,7 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 
 	log.Info("storing bundle in asset repo")
 
-	pluginContainerID := fmt.Sprintf(fmtPluginContainer, bundleName)
+	pluginContainerID := fmt.Sprintf(FmtPluginContainer, bundleName)
 	fCont, getErr := fStore.Container(pluginContainerID)
 	if getErr != nil {
 		log.WithField("container-id", pluginContainerID).Warning("container not found, creating")
@@ -324,7 +326,7 @@ func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*stora
 
 	log.Info("file store handle opened, storing bundle in asset repo")
 
-	pluginContainerID := fmt.Sprintf(fmtPluginContainer, bundleName)
+	pluginContainerID := fmt.Sprintf(FmtPluginContainer, bundleName)
 	fCont, getErr := fStore.Container(pluginContainerID)
 	if getErr != nil {
 		log.WithField("container-id", pluginContainerID).Warning("container not found, creating")
