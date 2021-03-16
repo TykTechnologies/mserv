@@ -24,10 +24,12 @@ import (
 	"github.com/TykTechnologies/mserv/util/storage/errors"
 )
 
-var (
-	moduleName = "mserv.api"
-	log        = logger.GetLogger(moduleName)
+const (
+	fmtPluginContainer = "mserv-plugin-%s"
+	moduleName         = "mserv.api"
 )
+
+var log = logger.GetLogger(moduleName)
 
 func NewAPI(store storage.MservStore) *API {
 	return &API{store: store}
@@ -112,10 +114,11 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	pluginPath := path.Join(bdl.Path, fName)
 
 	log.Info("storing bundle in asset repo")
-	pluginContainerID := "mserv-plugin-" + bundleName
+
+	pluginContainerID := fmt.Sprintf(fmtPluginContainer, bundleName)
 	fCont, getErr := fStore.Container(pluginContainerID)
 	if getErr != nil {
-		log.Warning("container not found, creating")
+		log.WithField("container-id", pluginContainerID).Warning("container not found, creating")
 		fCont, err = fStore.CreateContainer(pluginContainerID)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't fetch container: %s, couldn't create container: %s", getErr.Error(), err.Error())
@@ -257,7 +260,8 @@ func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*stora
 	defer fStore.Close()
 
 	log.Info("file store handle opened, storing bundle in asset repo")
-	pluginContainerID := "mserv-plugin-" + bundleName
+
+	pluginContainerID := fmt.Sprintf(fmtPluginContainer, bundleName)
 	fCont, getErr := fStore.Container(pluginContainerID)
 	if getErr != nil {
 		log.WithField("container-id", pluginContainerID).Warning("container not found, creating")
