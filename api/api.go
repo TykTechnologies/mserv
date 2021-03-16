@@ -69,7 +69,12 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 
 		return err
 	}
-	defer fStore.Close()
+
+	defer func() {
+		if err := fStore.Close(); err != nil {
+			log.WithError(err).Error("error while closing file store")
+		}
+	}()
 
 	pluginContainerID := fmt.Sprintf(fmtPluginContainer, bundleName)
 
