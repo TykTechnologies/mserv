@@ -73,6 +73,35 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 
 	pluginContainerID := fmt.Sprintf(fmtPluginContainer, bundleName)
 
+	// HACK: workaround for https://github.com/graymeta/stow/issues/239 - vvv
+	//
+	// (stow.Location).RemoveContainer doesn't currently take the full path into account for Kind "local".
+	// It merely calls "os.RemoveAll" with the _relative_ path, so we need to change to the parent path, and then defer
+	// changing back until after the misbehaving RemoveContainer call.
+	//
+	// Maybe swap out Stow for the Go CDK one day? https://gocloud.dev/howto/blob/
+
+	fsCfg := config.GetConf().Mserv.FileStore
+
+	if fsCfg.Kind == local.Kind {
+		prevWD, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("could not get current working directory: %w", err)
+		}
+
+		if err := os.Chdir(fsCfg.Local.ConfigKeyPath); err != nil {
+			return fmt.Errorf("could not change current working directory: %w", err)
+		}
+
+		defer func() {
+			if err := os.Chdir(prevWD); err != nil {
+				log.WithError(err).Error("could not revert to previous working directory")
+			}
+		}()
+	}
+
+	// HACK: workaround for https://github.com/graymeta/stow/issues/239 - ^^^
+
 	return fStore.RemoveContainer(pluginContainerID)
 }
 
