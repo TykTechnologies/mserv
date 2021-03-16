@@ -78,6 +78,21 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 
 	pluginContainerID := fmt.Sprintf(fmtPluginContainer, bundleName)
 
+	fCont, err := fStore.Container(pluginContainerID)
+	if err != nil {
+		return fmt.Errorf("could not get container: %w", err)
+	}
+
+	if errWalk := stow.Walk(fCont, "", 100, func(i stow.Item, e error) error {
+		if e != nil {
+			return fmt.Errorf("error getting item while walking container: %w", e)
+		}
+
+		return fCont.RemoveItem(i.ID())
+	}); errWalk != nil {
+		return fmt.Errorf("error while walking container to delete contents: %w", errWalk)
+	}
+
 	// HACK: workaround for https://github.com/graymeta/stow/issues/239 - vvv
 	//
 	// (stow.Location).RemoveContainer doesn't currently take the full path into account for Kind "local".
