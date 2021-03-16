@@ -59,7 +59,21 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 		return err
 	}
 
-	return a.store.DeleteMW(mw.UID)
+	if errDMW := a.store.DeleteMW(mw.UID); errDMW != nil {
+		return fmt.Errorf("could not delete middleware from store: %w", errDMW)
+	}
+
+	fStore, err := GetFileStore()
+	if err != nil {
+		log.WithError(err).Error("failed to get file handle")
+
+		return err
+	}
+	defer fStore.Close()
+
+	pluginContainerID := fmt.Sprintf(fmtPluginContainer, bundleName)
+
+	return fStore.RemoveContainer(pluginContainerID)
 }
 
 func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*storage.MW, error) {
