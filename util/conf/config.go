@@ -24,6 +24,13 @@ type GlobalConf struct{}
 
 var gConf *GlobalConf
 
+// Flush will reinitialise/forget any config data already read.
+func Flush() {
+	confDat = make([]byte, 0)
+
+	log.Debug("flushed config bytes")
+}
+
 // ReadConf provides the raw data from the config file.
 // The config file's location can be set via an environment variable `TYK_MSERV_CONFIG`, and if not specified defaults
 // to `/etc/tyk-mserv/config.json`.

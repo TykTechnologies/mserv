@@ -65,18 +65,32 @@ var (
 	log   = logger.GetLogger(moduleName)
 )
 
-// GetConf will get the config data for the MServ server
+// Reload the configuration settings from environment and file, in that order.
+func Reload() {
+	sConf = &Config{}
+
+	if err := envconfig.Process(envPrefix, sConf); err != nil {
+		log.WithError(err).Fatal("failed to process config env vars")
+	}
+
+	// Make sure the config data we're about to use is fresh
+	//
+	// We should consider migrating the 'conf' and 'config' packages to something more capable, like Viper:
+	// https://github.com/spf13/viper#watching-and-re-reading-config-files
+	// https://pkg.go.dev/github.com/spf13/viper#OnConfigChange
+	conf.Flush()
+
+	if err := json.Unmarshal(conf.ReadConf(), sConf); err != nil {
+		log.WithError(err).Fatal("failed to unmarshal mserv driver config")
+	}
+}
+
+// GetConf will get the configuration settings for the MServ server.
+// Subsequent calls will NOT refresh the settings if they have since changed.
+// For that to happen, call Reload first.
 var GetConf = func() *Config {
 	if sConf == nil {
-		sConf = &Config{}
-
-		if err := envconfig.Process(envPrefix, sConf); err != nil {
-			log.WithError(err).Fatal("failed to process config env vars")
-		}
-
-		if err := json.Unmarshal(conf.ReadConf(), sConf); err != nil {
-			log.WithError(err).Fatal("failed to unmarshal mserv driver config")
-		}
+		Reload()
 	}
 
 	return sConf

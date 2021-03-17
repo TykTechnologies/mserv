@@ -182,8 +182,7 @@ func (h *HttpServ) DeleteMW(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.api.HandleDeleteBundle(id)
-	if err != nil {
+	if err := h.api.HandleDeleteBundle(id); err != nil {
 		h.HandleError(err, w, r)
 		return
 	}

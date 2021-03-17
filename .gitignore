@@ -14,7 +14,7 @@ mservctl
 build/bundle.zip
 bundle.zip
 client/client
-files/mserv-plugin*
+files/mserv-plugin-*
 hack
 mserv.json
 plugins

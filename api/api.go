@@ -24,10 +24,14 @@ import (
 	"github.com/TykTechnologies/mserv/util/storage/errors"
 )
 
-var (
+const (
+	// FmtPluginContainer is a format string for the layout of the container names.
+	FmtPluginContainer = "mserv-plugin-%s"
+
 	moduleName = "mserv.api"
-	log        = logger.GetLogger(moduleName)
 )
+
+var log = logger.GetLogger(moduleName)
 
 func NewAPI(store storage.MservStore) *API {
 	return &API{store: store}
@@ -55,6 +59,69 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 	mw, err := a.store.GetMWByID(bundleName)
 	if err != nil {
 		return err
+	}
+
+	fStore, err := GetFileStore()
+	if err != nil {
+		log.WithError(err).Error("failed to get file handle")
+
+		return err
+	}
+
+	defer func() {
+		if errFC := fStore.Close(); errFC != nil {
+			log.WithError(errFC).Error("error while closing file store")
+		}
+	}()
+
+	pluginContainerID := fmt.Sprintf(FmtPluginContainer, bundleName)
+
+	fCont, err := fStore.Container(pluginContainerID)
+	if err != nil {
+		return fmt.Errorf("could not get container: %w", err)
+	}
+
+	if errWalk := stow.Walk(fCont, "", 100, func(i stow.Item, e error) error {
+		if e != nil {
+			return fmt.Errorf("error getting item while walking container: %w", e)
+		}
+
+		return fCont.RemoveItem(i.ID())
+	}); errWalk != nil {
+		return fmt.Errorf("error while walking container to delete contents: %w", errWalk)
+	}
+
+	// HACK: workaround for https://github.com/graymeta/stow/issues/239 - vvv
+	//
+	// (stow.Location).RemoveContainer doesn't currently take the full path into account for Kind "local".
+	// It merely calls "os.RemoveAll" with the _relative_ path, so we need to change to the parent path, and then defer
+	// changing back until after the misbehaving RemoveContainer call.
+	//
+	// Maybe swap out Stow for the Go CDK one day? https://gocloud.dev/howto/blob/
+
+	fsCfg := config.GetConf().Mserv.FileStore
+
+	if fsCfg.Kind == local.Kind {
+		prevWD, errWD := os.Getwd()
+		if errWD != nil {
+			return fmt.Errorf("could not get current working directory: %w", errWD)
+		}
+
+		if errCD := os.Chdir(fsCfg.Local.ConfigKeyPath); errCD != nil {
+			return fmt.Errorf("could not change current working directory: %w", errCD)
+		}
+
+		defer func() {
+			if errPD := os.Chdir(prevWD); errPD != nil {
+				log.WithError(errPD).WithField("dir", prevWD).Error("could not revert to previous working directory")
+			}
+		}()
+	}
+
+	// HACK: workaround for https://github.com/graymeta/stow/issues/239 - ^^^
+
+	if errRC := fStore.RemoveContainer(pluginContainerID); errRC != nil {
+		return fmt.Errorf("could not remove container '%s': %w", pluginContainerID, errRC)
 	}
 
 	return a.store.DeleteMW(mw.UID)
@@ -112,10 +179,11 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	pluginPath := path.Join(bdl.Path, fName)
 
 	log.Info("storing bundle in asset repo")
-	pluginContainerID := "mserv-plugin-" + bundleName
+
+	pluginContainerID := fmt.Sprintf(FmtPluginContainer, bundleName)
 	fCont, getErr := fStore.Container(pluginContainerID)
 	if getErr != nil {
-		log.Warning("container not found, creating")
+		log.WithField("container-id", pluginContainerID).Warning("container not found, creating")
 		fCont, err = fStore.CreateContainer(pluginContainerID)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't fetch container: %s, couldn't create container: %s", getErr.Error(), err.Error())
@@ -257,7 +325,8 @@ func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*stora
 	defer fStore.Close()
 
 	log.Info("file store handle opened, storing bundle in asset repo")
-	pluginContainerID := "mserv-plugin-" + bundleName
+
+	pluginContainerID := fmt.Sprintf(FmtPluginContainer, bundleName)
 	fCont, getErr := fStore.Container(pluginContainerID)
 	if getErr != nil {
 		log.WithField("container-id", pluginContainerID).Warning("container not found, creating")
@@ -396,7 +465,7 @@ func GetFileStore() (stow.Location, error) {
 	}
 
 	switch fsCfg.Kind {
-	case "local":
+	case local.Kind:
 		log.WithField("path", fsCfg.Local.ConfigKeyPath).Info("detected local store")
 
 		// Dialling stow/local will fail if the base directory doesn't already exist
@@ -404,13 +473,13 @@ func GetFileStore() (stow.Location, error) {
 			return nil, fmt.Errorf("%w: %s", ErrCreateLocal, fsCfg.Local.ConfigKeyPath)
 		}
 
-		return stow.Dial("local", stow.ConfigMap{
+		return stow.Dial(local.Kind, stow.ConfigMap{
 			local.ConfigKeyPath: fsCfg.Local.ConfigKeyPath,
 		})
-	case "s3":
+	case s3.Kind:
 		log.Info("detected s3 store")
 
-		return stow.Dial("s3", stow.ConfigMap{
+		return stow.Dial(s3.Kind, stow.ConfigMap{
 			s3.ConfigAccessKeyID: fsCfg.S3.ConfigAccessKeyID,
 			s3.ConfigRegion:      fsCfg.S3.ConfigRegion,
 			s3.ConfigSecretKey:   fsCfg.S3.ConfigSecretKey,
