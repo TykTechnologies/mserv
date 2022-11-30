@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -36,7 +37,7 @@ func pushMiddleware(cmd *cobra.Command, args []string) {
 	apiID := cmd.Flag("apiid").Value.String()
 	storeOnly := cmd.Flag("storeonly").Value.String() == "true"
 
-	params := mw.NewMwAddParams().WithUploadFile(file).WithAPIID(&apiID).WithStoreOnly(&storeOnly)
+	params := mw.NewMwAddParams().WithUploadFile(file).WithTimeout(120 * time.Second).WithAPIID(&apiID).WithStoreOnly(&storeOnly)
 
 	resp, err := mservapi.Mw.MwAdd(params, defaultAuth())
 	if err != nil {
