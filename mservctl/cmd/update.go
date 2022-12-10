@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -30,7 +31,7 @@ func updateMiddleware(cmd *cobra.Command, args []string) {
 	}
 	defer file.Close()
 
-	params := mw.NewMwUpdateParams().WithID(args[0]).WithUploadFile(file)
+	params := mw.NewMwUpdateParams().WithID(args[0]).WithUploadFile(file).WithTimeout(120 * time.Second)
 
 	resp, err := mservapi.Mw.MwUpdate(params, defaultAuth())
 	if err != nil {
