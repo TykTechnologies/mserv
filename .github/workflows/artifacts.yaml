@@ -19,7 +19,7 @@ jobs:
       - uses: rickstaa/action-contains-tag@v1
         id: contains_tag
         with:
-          reference: "main"
+          reference: "master"
           tag: "${{ github.ref }}"
 
   build-and-push:
