@@ -25,7 +25,6 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     needs: check-base-branch
-    if: ${{ needs.check-base-branch.outputs.on_main == 'true' }}
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
