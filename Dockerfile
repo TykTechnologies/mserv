@@ -35,7 +35,7 @@ COPY . .
 # Compile!
 RUN go build -ldflags="-buildid= -w" -trimpath -v -o /bin/mserv
 
-FROM cgr.dev/chainguard/glibc-dynamic:latest AS runner
+FROM debian:buster-slim AS runner
 
 # Set some shell options for using pipes and such
 SHELL [ "/bin/bash", "-euo", "pipefail", "-c" ]
