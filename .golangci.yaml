@@ -38,9 +38,6 @@ linters-settings:
   gofumpt:
     extra-rules: true
 
-  golint:
-    min-confidence: 0
-
   govet:
     check-shadowing: true
     enable-all: true
@@ -85,7 +82,6 @@ linters:
   enable:
     - asciicheck
     - bodyclose
-    - deadcode
     - dogsled
     - dupl
     - errcheck
@@ -98,7 +94,6 @@ linters:
     - goerr113
     - gofmt
     - gofumpt
-    - golint
     - gosec
     - gosimple
     - govet
@@ -110,13 +105,11 @@ linters:
     - noctx
     - nolintlint
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - whitespace
     - wrapcheck
     - wsl

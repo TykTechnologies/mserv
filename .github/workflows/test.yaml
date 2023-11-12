@@ -1,0 +1,28 @@
+name: Test, Lint, Build
+
+on: [push]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.15.x'
+
+    - name: Test
+      run: make test
+
+    - name: Lint
+      run: make lint
+
+    - name: Build server
+      if: always()
+      run: make build-binary
+
+    - name: Build cli
+      if: always()
+      run: make build-cli
