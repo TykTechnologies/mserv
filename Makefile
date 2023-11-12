@@ -26,11 +26,10 @@ help:
 .PHONY: help
 
 check-swagger:
-> which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
+> which swagger || (go get -u github.com/go-swagger/go-swagger/cmd/swagger)
 
 swagger: check-swagger
-> GO111MODULE=on go mod vendor
-> GO111MODULE=off swagger generate spec -o ./doc/swagger.yaml --scan-models -x mservclient -x vendor
+> swagger generate spec -o ./doc/swagger.yaml --scan-models -x mservclient
 .PHONY: swagger
 
 serve-swagger: check-swagger
@@ -89,7 +88,7 @@ mserv:
 
 mservctl:
 > cd mservctl
-> go build -o ../bin/mservctl -mod=vendor
+> go build -o ../bin/mservctl
 .PHONY: mservctl
 
 start: ## Start runs development environment with mserv and mongo in docker-compose.

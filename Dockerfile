@@ -1,4 +1,4 @@
-FROM golang:1.15 AS builder
+FROM golang:1.20.11 AS builder
 
 # Set some shell options for using pipes and such
 SHELL [ "/bin/bash", "-euo", "pipefail", "-c" ]
@@ -12,22 +12,7 @@ RUN apt-get update \
 # Don't call any C code (the 'scratch' base image used later won't have any libraries to reference)
 ENV CGO_ENABLED=0
 
-# Can't use Go modules because of broken vendoring/dependencies in Tyk Gateway v2.9.3 - TODO
-ENV GO111MODULE=off
-
-# Precompile the entire Go standard library into a Docker cache layer: useful for other projects too!
-# cf. https://www.reddit.com/r/golang/comments/hj4n44/improved_docker_go_module_dependency_cache_for/
-RUN go install -ldflags="-buildid= -w" -trimpath -v std
-
 WORKDIR /go/src/github.com/TykTechnologies/mserv
-
-# vvv Can't use Go modules because of broken vendoring/dependencies in Tyk Gateway v2.9.3 - TODO
-# # This will save Go dependencies in the Docker cache, until/unless they change
-# COPY go.mod go.sum ./
-
-# # Download and precompile all third party libraries
-# RUN go mod graph | awk '$1 !~ "@" { print $2 }' | xargs go get -ldflags="-buildid= -w" -trimpath -v
-# ^^^ Can't use Go modules because of broken vendoring/dependencies in Tyk Gateway v2.9.3 - TODO
 
 # Add the sources
 COPY . .
