@@ -1,0 +1,33 @@
+---
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:4.0
+    restart: always
+    environment:
+      - AUTH=no
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - tyk
+
+  mserv:
+    build: .
+    restart: always
+    volumes:
+      - ./mserv_example.conf:/etc/mserv/mserv.json
+    depends_on:
+      - mongodb
+    ports:
+      - "8989:8989"
+    networks:
+      - tyk
+
+volumes:
+  mongo-data:
+
+networks:
+  tyk:
