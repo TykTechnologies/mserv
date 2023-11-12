@@ -12,7 +12,7 @@ jobs:
       on_main: ${{ steps.contains_tag.outputs.retval }}
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -27,7 +27,7 @@ jobs:
     needs: check-base-branch
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: TykTechnologies/actions/docker-login@main
         with:
