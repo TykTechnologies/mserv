@@ -3,6 +3,8 @@ package api
 
 import (
 	"bufio"
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -21,7 +23,6 @@ import (
 	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
 	"github.com/TykTechnologies/mserv/storage"
 	"github.com/TykTechnologies/mserv/util/logger"
-	"github.com/TykTechnologies/mserv/util/storage/errors"
 )
 
 const (
@@ -41,24 +42,24 @@ type API struct {
 	store storage.MservStore
 }
 
-func (a *API) HandleUpdateBundle(filePath string, bundleName string) (*storage.MW, error) {
-	mw, err := a.store.GetMWByID(bundleName)
+func (a *API) HandleUpdateBundle(ctx context.Context, filePath, bundleName string) (*storage.MW, error) {
+	mw, err := a.store.GetMWByID(ctx, bundleName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get mw by id error: %w", err)
 	}
 
-	err = a.store.DeleteMW(mw.UID)
+	err = a.store.DeleteMW(ctx, mw.UID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("delete mw error: %w", err)
 	}
 
-	return a.HandleNewBundle(filePath, mw.APIID, bundleName)
+	return a.HandleNewBundle(ctx, filePath, mw.APIID, bundleName)
 }
 
-func (a *API) HandleDeleteBundle(bundleName string) error {
-	mw, err := a.store.GetMWByID(bundleName)
+func (a *API) HandleDeleteBundle(ctx context.Context, bundleName string) error {
+	mw, err := a.store.GetMWByID(ctx, bundleName)
 	if err != nil {
-		return err
+		return fmt.Errorf("get mw by id error: %w", err)
 	}
 
 	fStore, err := GetFileStore()
@@ -124,10 +125,14 @@ func (a *API) HandleDeleteBundle(bundleName string) error {
 		return fmt.Errorf("could not remove container '%s': %w", pluginContainerID, errRC)
 	}
 
-	return a.store.DeleteMW(mw.UID)
+	if err := a.store.DeleteMW(ctx, mw.UID); err != nil {
+		return fmt.Errorf("delete mw error: %w", err)
+	}
+
+	return nil
 }
 
-func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*storage.MW, error) {
+func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName string) (*storage.MW, error) {
 	// Read the zip file raw data
 	bData, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -283,7 +288,7 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 	// a.LoadMWIntoDispatcher(mw, bdl.Path)
 
 	// store in mongo
-	_, err = a.store.CreateMW(mw)
+	_, err = a.store.CreateMW(ctx, mw)
 	if err != nil {
 		return mw, err
 	}
@@ -303,7 +308,7 @@ func (a *API) HandleNewBundle(filePath string, apiID, bundleName string) (*stora
 }
 
 // Will only store the bundle file into our store so we can pull it from a gateway if necessary
-func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*storage.MW, error) {
+func (a *API) StoreBundleOnly(ctx context.Context, filePath, apiID, bundleName string) (*storage.MW, error) {
 	// create DB record of the bundle
 	mw := &storage.MW{
 		UID:          bundleName,
@@ -358,9 +363,9 @@ func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*stora
 	log.Info("completed storage")
 
 	// store in mongo
-	_, err = a.store.CreateMW(mw)
+	_, err = a.store.CreateMW(ctx, mw)
 	if err != nil {
-		return mw, err
+		return mw, fmt.Errorf("create mw error: %w", err)
 	}
 
 	// clean up
@@ -371,12 +376,22 @@ func (a *API) StoreBundleOnly(filePath string, apiID, bundleName string) (*stora
 	return mw, nil
 }
 
-func (a *API) GetMWByID(id string) (*storage.MW, error) {
-	return a.store.GetMWByID(id)
+func (a *API) GetMWByID(ctx context.Context, id string) (*storage.MW, error) {
+	mw, err := a.store.GetMWByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get mw by id error: %w", err)
+	}
+
+	return mw, nil
 }
 
-func (a *API) GetAllActiveMW() ([]*storage.MW, error) {
-	return a.store.GetAllActive()
+func (a *API) GetAllActiveMW(ctx context.Context) ([]*storage.MW, error) {
+	list, err := a.store.GetAllActive(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get all active error: %w", err)
+	}
+
+	return list, nil
 }
 
 func (a *API) LoadMWIntoDispatcher(mw *storage.MW, pluginPath string) (*storage.MW, error) {

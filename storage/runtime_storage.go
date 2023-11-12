@@ -2,13 +2,13 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/TykTechnologies/tyk/apidef"
 
 	coprocess "github.com/TykTechnologies/mserv/coprocess/bindings/go"
-	"github.com/TykTechnologies/mserv/util/storage/errors"
 )
 
 var GlobalRtStore *RuntimeStore

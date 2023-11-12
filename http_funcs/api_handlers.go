@@ -74,11 +74,13 @@ func (h *HttpServ) ExtractBundleFromPost(r *http.Request) (string, error) {
 // Expects a zipped file bundle in the `uploadfile` form field.
 //
 // Security:
-//   api_key:
+//
+//	api_key:
 //
 // Responses:
-//   200: mwIDResponse
-//   500: genericErrorResponse
+//
+//	200: mwIDResponse
+//	500: genericErrorResponse
 func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 	apiID := r.FormValue("api_id")
 
@@ -100,7 +102,7 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 		restartNeeded = false
 	}
 
-	mw, err := processor(tmpFileLoc, apiID, uuid.NewV4().String())
+	mw, err := processor(r.Context(), tmpFileLoc, apiID, uuid.NewV4().String())
 	if err != nil {
 		h.HandleError(err, w, r)
 		return
@@ -128,11 +130,13 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 // Expects a file bundle in `uploadfile` form field.
 //
 // Security:
-//   api_key:
+//
+//	api_key:
 //
 // Responses:
-//   200: mwIDResponse
-//   500: genericErrorResponse
+//
+//	200: mwIDResponse
+//	500: genericErrorResponse
 func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -148,7 +152,7 @@ func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mw, err := h.api.HandleUpdateBundle(tmpFileLoc, id)
+	mw, err := h.api.HandleUpdateBundle(r.Context(), tmpFileLoc, id)
 	if err != nil {
 		h.HandleError(err, w, r)
 		return
@@ -169,11 +173,13 @@ func (h *HttpServ) UpdateMW(w http.ResponseWriter, r *http.Request) {
 // Deletes a middleware specified by {id}.
 //
 // Security:
-//   api_key:
+//
+//	api_key:
 //
 // Responses:
-//   200: mwIDResponse
-//   500: genericErrorResponse
+//
+//	200: mwIDResponse
+//	500: genericErrorResponse
 func (h *HttpServ) DeleteMW(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -182,7 +188,7 @@ func (h *HttpServ) DeleteMW(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.api.HandleDeleteBundle(id); err != nil {
+	if err := h.api.HandleDeleteBundle(r.Context(), id); err != nil {
 		h.HandleError(err, w, r)
 		return
 	}
@@ -198,11 +204,13 @@ func (h *HttpServ) DeleteMW(w http.ResponseWriter, r *http.Request) {
 // Fetches a middleware specified by {id}.
 //
 // Security:
-//   api_key:
+//
+//	api_key:
 //
 // Responses:
-//   200: mwResponse
-//   500: genericErrorResponse
+//
+//	200: mwResponse
+//	500: genericErrorResponse
 func (h *HttpServ) FetchMW(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -211,7 +219,7 @@ func (h *HttpServ) FetchMW(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dat, err := h.api.GetMWByID(id)
+	dat, err := h.api.GetMWByID(r.Context(), id)
 	if err != nil {
 		h.HandleError(err, w, r)
 		return
@@ -227,11 +235,13 @@ func (h *HttpServ) FetchMW(w http.ResponseWriter, r *http.Request) {
 // - application/octet-stream
 //
 // Security:
-//   api_key:
+//
+//	api_key:
 //
 // Responses:
-//   200: mwBundleResponse
-//   500: genericErrorResponse
+//
+//	200: mwBundleResponse
+//	500: genericErrorResponse
 func (h *HttpServ) FetchBundleFile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -240,7 +250,7 @@ func (h *HttpServ) FetchBundleFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dat, err := h.api.GetMWByID(id)
+	dat, err := h.api.GetMWByID(r.Context(), id)
 	if err != nil {
 		h.HandleError(err, w, r)
 		return
@@ -260,13 +270,15 @@ func (h *HttpServ) FetchBundleFile(w http.ResponseWriter, r *http.Request) {
 // Lists all middleware.
 //
 // Security:
-//   api_key:
+//
+//	api_key:
 //
 // Responses:
-//   200: mwListResponse
-//   500: genericErrorResponse
+//
+//	200: mwListResponse
+//	500: genericErrorResponse
 func (h *HttpServ) FetchAllActiveMW(w http.ResponseWriter, r *http.Request) {
-	mws, err := h.api.GetAllActiveMW()
+	mws, err := h.api.GetAllActiveMW(r.Context())
 	if err != nil {
 		h.HandleError(err, w, r)
 		return

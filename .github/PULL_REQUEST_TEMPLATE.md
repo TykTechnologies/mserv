@@ -32,10 +32,9 @@
 - [ ] My change requires a change to the documentation.
   - [ ] If you've changed APIs, describe what needs to be updated in the documentation.
 - [ ] I have updated the documentation accordingly.
-- [ ] Modules and vendor dependencies have been updated; run `go mod tidy && go mod vendor` in applicable directories.
+- [ ] Modules dependencies have been updated; run `go mod tidy` in applicable directories.
 - [ ] I have added tests to cover my changes.
 - [ ] All new and existing tests passed.
 - [ ] Check your code additions will not fail linting checks:
   - [ ] `gofmt -s -w .`
-  - [ ] `go vet ./...`
   - [ ] `golangci-lint run`

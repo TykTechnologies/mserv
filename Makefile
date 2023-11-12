@@ -41,6 +41,7 @@ swagger-client: check-swagger
 
 clean: ## Clean up the temp and output directories, and any built binaries. This will cause everything to get rebuilt.
 > rm -rf ./bin
+> rm -rf ./integration/outputs
 > go clean
 > cd mservctl
 > go clean
