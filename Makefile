@@ -26,8 +26,6 @@ help:
 .PHONY: help
 
 all: test lint build build-cli ## Test and lint and build.
-test: tmp/.tests-passed.sentinel ## Run tests.
-lint: tmp/.linted.sentinel ## Lint all of the Go code. Will also test.
 build: out/image-id ## Build the mserv Docker image. Will also test and lint.
 build-binary: $(binary_name) ## Build a bare binary only, without a Docker image wrapped around it.
 build-cli: mservctl/mservctl ## Build the mservctl CLI binary. Will also test and lint.
@@ -69,36 +67,33 @@ clean-hack: ## Clean up binaries under 'hack'.
 clean-all: clean clean-docker clean-hack ## Clean all of the things.
 .PHONY: clean-all
 
-# Tests - re-run if any Go files have changes since tmp/.tests-passed.sentinel last touched.
-tmp/.tests-passed.sentinel: $(shell find . -type f -iname "*.go")
+# Run go tests
+test: $(shell find . -type f -iname "*.go")
 > mkdir -p $(@D)
-> go test ./...
-> touch $@
+> go test -v -count=1 -p 1 -race ./...
 
-# Lint - re-run if the tests have been re-run (and so, by proxy, whenever the source files have changed).
-tmp/.linted.sentinel: .golangci.yaml hack/bin/golangci-lint tmp/.tests-passed.sentinel
+# Lint golangci lint
+lint: .golangci.yaml hack/bin/golangci-lint
 > mkdir -p $(@D)
 > hack/bin/golangci-lint run
-> go vet ./...
-> touch $@
 
 hack/bin/golangci-lint:
 > curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
 > | sh -s -- -b $(shell pwd)/hack/bin
 
 # Docker image - re-build if the lint output is re-run.
-out/image-id: Dockerfile tmp/.linted.sentinel
+out/image-id: Dockerfile
 > mkdir -p $(@D)
 > image_id="$(image_repository):$(shell uuidgen)"
 > DOCKER_BUILDKIT=1 docker build --tag="$${image_id}" .
 > echo "$${image_id}" > out/image-id
 
-# Main server binary - re-build if the lint output is re-run.
-$(binary_name): tmp/.linted.sentinel
+# Main server binary
+$(binary_name):
 > go build -mod=vendor
 
 # CLI binary - re-build if the lint output is re-run.
-mservctl/mservctl: tmp/.linted.sentinel
+mservctl/mservctl:
 > cd mservctl
 > go build -mod=vendor
 
