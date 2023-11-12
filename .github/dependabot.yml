@@ -1,0 +1,26 @@
+---
+version: 2
+
+updates:
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      include: scope
+      prefix: "Actions"
+    reviewers:
+      - "TykTechnologies/cloud-squad-be"
+
+  # Go code base
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      include: scope
+      prefix: "Go"
+    reviewers:
+      - "TykTechnologies/cloud-squad-be"
+    open-pull-requests-limit: 10
