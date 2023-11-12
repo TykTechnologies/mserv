@@ -71,7 +71,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: true
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v3
         with:
           name: ${{ env.BINARY_NAME }}.Linux.amd64
 
@@ -85,7 +85,7 @@ jobs:
           asset_name: ${{ env.BINARY_NAME }}.linux.amd64
           asset_content_type: application/octet-stream
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v3
         with:
           name: ${{ env.BINARY_NAME }}.macos.amd64
 
