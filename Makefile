@@ -101,3 +101,11 @@ $(binary_name): tmp/.linted.sentinel
 mservctl/mservctl: tmp/.linted.sentinel
 > cd mservctl
 > go build -mod=vendor
+
+# Start runs development environment with mserv and mongo in docker-compose
+start:
+> docker-compose up -d
+
+# Stop runs development environment with mserv and mongo in docker-compose
+stop:
+> docker-compose stop
