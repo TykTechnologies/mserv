@@ -49,7 +49,7 @@ jobs:
         run: make build-cli
 
       - name: Upload ${{ runner.os }} ${{ matrix.arch }} binary
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.BINARY_NAME }}.${{ runner.os }}.${{ matrix.arch }}
           path: mservctl/${{ env.BINARY_NAME }}
