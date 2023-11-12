@@ -83,7 +83,7 @@ build: mserv mservctl ## Build server and client binary.
 .PHONY: build
 
 mserv:
-> go build -o bin/mserv -mod=vendor
+> go build -o bin/mserv
 .PHONY: mserv
 
 mservctl:
