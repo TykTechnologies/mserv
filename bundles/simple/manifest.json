@@ -1,0 +1,18 @@
+{
+  "file_list": [
+    "plugin_v5.2.2_linux_amd64.so"
+  ],
+  "custom_middleware": {
+    "pre": [
+      {
+        "name": "AddFooBarHeader",
+        "path": "plugin_v5.2.2_linux_amd64.so",
+        "require_session": false,
+        "raw_body_only": false
+      }
+    ],
+    "driver": "goplugin"
+  },
+  "checksum": "",
+  "signature": ""
+}

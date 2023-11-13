@@ -2,6 +2,18 @@
 version: '3.8'
 
 services:
+  tyk-plugin-compiler:
+    image: tykio/tyk-plugin-compiler:${TYK_VERSION}
+    platform: linux/amd64
+    volumes:
+      - ./bundles/simple:/plugin-source
+
+  tyk-gateway:
+    image: tykio/tyk-gateway:${TYK_VERSION}
+    platform: linux/amd64
+    volumes:
+      - ./bundles/simple:/plugin-source
+
   mongodb:
     image: mongo:4.0
     restart: always

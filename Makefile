@@ -10,6 +10,7 @@ SHELL := bash
 MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --warn-undefined-variables
 
+export TYK_VERSION := v5.2.2
 
 ifeq ($(origin .RECIPEPREFIX), undefined)
   $(error This Make does not support .RECIPEPREFIX. Please use GNU Make 4.0 or later.)
@@ -97,10 +98,19 @@ mservctl/mservctl:
 > cd mservctl
 > go build -mod=vendor
 
-# Start runs development environment with mserv and mongo in docker-compose
+# Start runs development environment with mserv and mongo in docker-compose.
 start:
 > docker-compose up -d
 
-# Stop runs development environment with mserv and mongo in docker-compose
+# Stop runs development environment with mserv and mongo in docker-compose.
 stop:
 > docker-compose stop
+
+# Builds Go plugin and moves it into local Tyk instance.
+plugin:
+> docker-compose run --rm tyk-plugin-compiler plugin.go _$$(date +%s)
+.PHONY: plugin
+
+bundles:
+> docker-compose run --rm --workdir /plugin-source --entrypoint "/opt/tyk-gateway/tyk bundle build -y -o bundle.zip" tyk-gateway
+.PHONY: bundles
