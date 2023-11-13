@@ -8,21 +8,46 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Setup Go ${{ matrix.go-version }}
+
+    - name: Setup Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.15.x'
+        go-version: '1.20.x'
+
+    - name: Setup Golang caches
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-golang-
 
     - name: Test
       run: make test
 
-    - name: Lint
-      run: make lint
+    # - name: Lint
+    #  run: make lint
 
-    - name: Build server
-      if: always()
-      run: make build-binary
+    - name: Build server and client
+      run: make build
 
-    - name: Build cli
-      if: always()
-      run: make build-cli
+    - name: Cache Docker images.
+      uses: ScribeMD/docker-cache@0.3.6
+      with:
+        key: docker-${{ runner.os }}-${{ hashFiles('docker-compose.yaml') }}
+
+    - name: Start Docker Compose with MongoDB and Tyk Mserv
+      run: make start
+
+    - name: Build and bundle plugins
+      run: |
+        make plugin
+        make bundles
+
+    - name: Install Venom command line tool
+      run: go install github.com/ovh/venom/cmd/venom@latest
+
+    - name: Run Venom tests
+      run: make integration

@@ -1,7 +1,7 @@
 SHELL := bash
 
 # Default - top level rule is what gets run when you run just `make` without specifying a goal/target.
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := help
 
 .DELETE_ON_ERROR:
 .ONESHELL:
@@ -17,20 +17,13 @@ ifeq ($(origin .RECIPEPREFIX), undefined)
 endif
 .RECIPEPREFIX = >
 
-binary_name ?= $(shell basename $(CURDIR))
-image_repository ?= tykio/$(binary_name)
+image_repository ?= tykio/mserv
 
 # Adjust the width of the first column by changing the '16' value in the printf pattern.
 help:
 > @grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
   | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}'
 .PHONY: help
-
-all: test lint build build-cli ## Test and lint and build.
-build: out/image-id ## Build the mserv Docker image. Will also test and lint.
-build-binary: $(binary_name) ## Build a bare binary only, without a Docker image wrapped around it.
-build-cli: mservctl/mservctl ## Build the mservctl CLI binary. Will also test and lint.
-.PHONY: all test lint build build-binary build-cli
 
 check-swagger:
 > which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
@@ -48,7 +41,7 @@ swagger-client: check-swagger
 > swagger generate client -f ./doc/swagger.yaml -t ./mservclient
 
 clean: ## Clean up the temp and output directories, and any built binaries. This will cause everything to get rebuilt.
-> rm -rf ./tmp ./out
+> rm -rf ./bin
 > go clean
 > cd mservctl
 > go clean
@@ -82,28 +75,27 @@ hack/bin/golangci-lint:
 > curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
 > | sh -s -- -b $(shell pwd)/hack/bin
 
-# Docker image - re-build if the lint output is re-run.
-out/image-id: Dockerfile
+docker: Dockerfile ## Builds mserv docker image.
 > mkdir -p $(@D)
 > image_id="$(image_repository):$(shell uuidgen)"
 > DOCKER_BUILDKIT=1 docker build --tag="$${image_id}" .
-> echo "$${image_id}" > out/image-id
 
-# Main server binary
-$(binary_name):
-> go build -mod=vendor
+build: mserv mservctl ## Build server and client binary.
+.PHONY: build
 
-# CLI binary - re-build if the lint output is re-run.
-mservctl/mservctl:
+mserv:
+> go build -o bin/mserv -mod=vendor
+.PHONY: mserv
+
+mservctl:
 > cd mservctl
-> go build -mod=vendor
+> go build -o ../bin/mservctl -mod=vendor
+.PHONY: mservctl
 
-# Start runs development environment with mserv and mongo in docker-compose.
-start:
+start: ## Start runs development environment with mserv and mongo in docker-compose.
 > docker-compose up -d
 
-# Stop runs development environment with mserv and mongo in docker-compose.
-stop:
+stop: ## Stop runs development environment with mserv and mongo in docker-compose.
 > docker-compose stop
 
 # Builds Go plugin and moves it into local Tyk instance.
@@ -114,3 +106,9 @@ plugin:
 bundles:
 > docker-compose run --rm --workdir /plugin-source --entrypoint "/opt/tyk-gateway/tyk bundle build -y -o bundle.zip" tyk-gateway
 .PHONY: bundles
+
+integration: ## Runs integration test for mserv and mservctl it needs services running.
+> cd integration
+> venom run integration.yaml -vvv --output-dir outputs
+> cd ..
+.PHONY: integration
