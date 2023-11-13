@@ -1,11 +1,8 @@
 # Binaries/objects
+bin/
 mserv
 mservctl
 *.so
-
-# Makefile things
-/out/
-/tmp/
 
 # macOS
 .DS_Store
@@ -18,6 +15,7 @@ files/mserv-plugin-*
 hack
 mserv.json
 plugins
+integration/outputs/
 
 # IDE resources
 .idea

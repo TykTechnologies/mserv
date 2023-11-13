@@ -1,0 +1,45 @@
+name: Integration tests for mserv and mservctl
+
+testcases:
+  - name: List
+    steps:
+      - script: ../bin/mservctl list -e http://localhost:8989
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout MustContainSubstring "ID  ACTIVE  SERVE ONLY  LAST UPDATE"
+          - result.systemout MustNotContainSubstring true # Should not have any other rows as header row.
+          - result.systemout MustNotContainSubstring false # Should not have any other rows as header row.
+
+  - name: Push
+    steps:
+      - script: ../bin/mservctl push -e http://localhost:8989 ../bundles/simple/bundle.zip
+        assertions:
+         - result.code ShouldEqual 0
+         - result.systemerr MustContainSubstring Middleware uploaded successfully, ID
+        vars:
+          bundle:
+            from: result.systemerr
+            regex: "Middleware uploaded successfully, ID: ([a-z0-9-]+)"
+
+  - name: Fetch
+    steps:
+    - script: ../bin/mservctl fetch -e http://localhost:8989 {{.Push.bundle}}
+      assertions:
+        - result.code ShouldEqual 0
+        - result.systemout MustContainSubstring {{.Push.bundle}}
+
+  - name: Delete
+    steps:
+       - script: ../bin/mservctl delete -e http://localhost:8989 {{.Push.bundle}}
+         assertions:
+           - result.code ShouldEqual 0
+           - result.systemerr MustContainSubstring "Middleware deleted successfully, ID"
+
+  - name: List
+    steps:
+    - script: ../bin/mservctl list -e http://localhost:8989
+      assertions:
+      - result.code ShouldEqual 0
+      - result.systemout MustContainSubstring "ID  ACTIVE  SERVE ONLY  LAST UPDATE"
+      - result.systemout MustNotContainSubstring true # Should not have any other rows as header row.
+      - result.systemout MustNotContainSubstring false # Should not have any other rows as header row.

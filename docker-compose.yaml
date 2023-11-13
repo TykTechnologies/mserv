@@ -7,12 +7,16 @@ services:
     platform: linux/amd64
     volumes:
       - ./bundles/simple:/plugin-source
+    networks:
+      - tyk
 
   tyk-gateway:
     image: tykio/tyk-gateway:${TYK_VERSION}
     platform: linux/amd64
     volumes:
       - ./bundles/simple:/plugin-source
+    networks:
+      - tyk
 
   mongodb:
     image: mongo:4.0
