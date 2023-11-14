@@ -25,25 +25,27 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	Invoke(params *InvokeParams, authInfo runtime.ClientAuthInfoWriter) (*InvokeOK, error)
+	Invoke(params *InvokeParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*InvokeOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-  Invoke invokes a middleware by name
+Invoke invokes a middleware by name
 
-  Expects a coprocess.Object encoded as JSON in the request body and returns the result in the same way.
+Expects a coprocess.Object encoded as JSON in the request body and returns the result in the same way.
 */
-func (a *Client) Invoke(params *InvokeParams, authInfo runtime.ClientAuthInfoWriter) (*InvokeOK, error) {
+func (a *Client) Invoke(params *InvokeParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*InvokeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewInvokeParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "invoke",
 		Method:             "POST",
 		PathPattern:        "/execute/{name}",
@@ -55,7 +57,12 @@ func (a *Client) Invoke(params *InvokeParams, authInfo runtime.ClientAuthInfoWri
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

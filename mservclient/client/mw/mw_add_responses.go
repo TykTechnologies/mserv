@@ -6,6 +6,7 @@ package mw
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -37,9 +38,8 @@ func (o *MwAddReader) ReadResponse(response runtime.ClientResponse, consumer run
 			return nil, err
 		}
 		return nil, result
-
 	default:
-		return nil, runtime.NewAPIError("unknown error", response, response.Code())
+		return nil, runtime.NewAPIError("[POST /api/mw] mwAdd", response, response.Code())
 	}
 }
 
@@ -48,7 +48,8 @@ func NewMwAddOK() *MwAddOK {
 	return &MwAddOK{}
 }
 
-/*MwAddOK handles this case with default header values.
+/*
+MwAddOK describes a response with status code 200, with default header values.
 
 Response that only includes the ID of the middleware as `BundleID` in the `Payload`
 */
@@ -56,7 +57,41 @@ type MwAddOK struct {
 	Payload *MwAddOKBody
 }
 
+// IsSuccess returns true when this mw add o k response has a 2xx status code
+func (o *MwAddOK) IsSuccess() bool {
+	return true
+}
+
+// IsRedirect returns true when this mw add o k response has a 3xx status code
+func (o *MwAddOK) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this mw add o k response has a 4xx status code
+func (o *MwAddOK) IsClientError() bool {
+	return false
+}
+
+// IsServerError returns true when this mw add o k response has a 5xx status code
+func (o *MwAddOK) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this mw add o k response a status code equal to that given
+func (o *MwAddOK) IsCode(code int) bool {
+	return code == 200
+}
+
+// Code gets the status code for the mw add o k response
+func (o *MwAddOK) Code() int {
+	return 200
+}
+
 func (o *MwAddOK) Error() string {
+	return fmt.Sprintf("[POST /api/mw][%d] mwAddOK  %+v", 200, o.Payload)
+}
+
+func (o *MwAddOK) String() string {
 	return fmt.Sprintf("[POST /api/mw][%d] mwAddOK  %+v", 200, o.Payload)
 }
 
@@ -81,7 +116,8 @@ func NewMwAddInternalServerError() *MwAddInternalServerError {
 	return &MwAddInternalServerError{}
 }
 
-/*MwAddInternalServerError handles this case with default header values.
+/*
+MwAddInternalServerError describes a response with status code 500, with default header values.
 
 Generic error specified by `Status` and `Error` fields
 */
@@ -89,7 +125,41 @@ type MwAddInternalServerError struct {
 	Payload *models.Payload
 }
 
+// IsSuccess returns true when this mw add internal server error response has a 2xx status code
+func (o *MwAddInternalServerError) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this mw add internal server error response has a 3xx status code
+func (o *MwAddInternalServerError) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this mw add internal server error response has a 4xx status code
+func (o *MwAddInternalServerError) IsClientError() bool {
+	return false
+}
+
+// IsServerError returns true when this mw add internal server error response has a 5xx status code
+func (o *MwAddInternalServerError) IsServerError() bool {
+	return true
+}
+
+// IsCode returns true when this mw add internal server error response a status code equal to that given
+func (o *MwAddInternalServerError) IsCode(code int) bool {
+	return code == 500
+}
+
+// Code gets the status code for the mw add internal server error response
+func (o *MwAddInternalServerError) Code() int {
+	return 500
+}
+
 func (o *MwAddInternalServerError) Error() string {
+	return fmt.Sprintf("[POST /api/mw][%d] mwAddInternalServerError  %+v", 500, o.Payload)
+}
+
+func (o *MwAddInternalServerError) String() string {
 	return fmt.Sprintf("[POST /api/mw][%d] mwAddInternalServerError  %+v", 500, o.Payload)
 }
 
@@ -109,7 +179,8 @@ func (o *MwAddInternalServerError) readResponse(response runtime.ClientResponse,
 	return nil
 }
 
-/*MwAddOKBody mw add o k body
+/*
+MwAddOKBody mw add o k body
 swagger:model MwAddOKBody
 */
 type MwAddOKBody struct {
@@ -139,7 +210,6 @@ func (o *MwAddOKBody) Validate(formats strfmt.Registry) error {
 }
 
 func (o *MwAddOKBody) validatePayload(formats strfmt.Registry) error {
-
 	if swag.IsZero(o.Payload) { // not required
 		return nil
 	}
@@ -148,6 +218,43 @@ func (o *MwAddOKBody) validatePayload(formats strfmt.Registry) error {
 		if err := o.Payload.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("mwAddOK" + "." + "Payload")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("mwAddOK" + "." + "Payload")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this mw add o k body based on the context it is used
+func (o *MwAddOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.contextValidatePayload(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *MwAddOKBody) contextValidatePayload(ctx context.Context, formats strfmt.Registry) error {
+
+	if o.Payload != nil {
+
+		if swag.IsZero(o.Payload) { // not required
+			return nil
+		}
+
+		if err := o.Payload.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("mwAddOK" + "." + "Payload")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("mwAddOK" + "." + "Payload")
 			}
 			return err
 		}
@@ -174,7 +281,8 @@ func (o *MwAddOKBody) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
-/*MwAddOKBodyPayload mw add o k body payload
+/*
+MwAddOKBodyPayload mw add o k body payload
 swagger:model MwAddOKBodyPayload
 */
 type MwAddOKBodyPayload struct {
@@ -185,6 +293,11 @@ type MwAddOKBodyPayload struct {
 
 // Validate validates this mw add o k body payload
 func (o *MwAddOKBodyPayload) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this mw add o k body payload based on context it is used
+func (o *MwAddOKBodyPayload) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

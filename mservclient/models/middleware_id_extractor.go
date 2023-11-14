@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -17,7 +19,7 @@ import (
 type MiddlewareIDExtractor struct {
 
 	// extractor config
-	ExtractorConfig map[string]interface{} `json:"extractor_config,omitempty"`
+	ExtractorConfig interface{} `json:"extractor_config,omitempty"`
 
 	// extract from
 	ExtractFrom IDExtractorSource `json:"extract_from,omitempty"`
@@ -45,7 +47,6 @@ func (m *MiddlewareIDExtractor) Validate(formats strfmt.Registry) error {
 }
 
 func (m *MiddlewareIDExtractor) validateExtractFrom(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ExtractFrom) { // not required
 		return nil
 	}
@@ -53,6 +54,8 @@ func (m *MiddlewareIDExtractor) validateExtractFrom(formats strfmt.Registry) err
 	if err := m.ExtractFrom.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("extract_from")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("extract_from")
 		}
 		return err
 	}
@@ -61,7 +64,6 @@ func (m *MiddlewareIDExtractor) validateExtractFrom(formats strfmt.Registry) err
 }
 
 func (m *MiddlewareIDExtractor) validateExtractWith(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ExtractWith) { // not required
 		return nil
 	}
@@ -69,6 +71,62 @@ func (m *MiddlewareIDExtractor) validateExtractWith(formats strfmt.Registry) err
 	if err := m.ExtractWith.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("extract_with")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("extract_with")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this middleware Id extractor based on the context it is used
+func (m *MiddlewareIDExtractor) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateExtractFrom(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateExtractWith(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MiddlewareIDExtractor) contextValidateExtractFrom(ctx context.Context, formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ExtractFrom) { // not required
+		return nil
+	}
+
+	if err := m.ExtractFrom.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("extract_from")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("extract_from")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MiddlewareIDExtractor) contextValidateExtractWith(ctx context.Context, formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ExtractWith) { // not required
+		return nil
+	}
+
+	if err := m.ExtractWith.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("extract_with")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("extract_with")
 		}
 		return err
 	}

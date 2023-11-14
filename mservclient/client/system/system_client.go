@@ -25,23 +25,25 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	Health(params *HealthParams) (*HealthOK, error)
+	Health(params *HealthParams, opts ...ClientOption) (*HealthOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-  Health queries health status of mserv service
+Health queries health status of mserv service
 */
-func (a *Client) Health(params *HealthParams) (*HealthOK, error) {
+func (a *Client) Health(params *HealthParams, opts ...ClientOption) (*HealthOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewHealthParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "health",
 		Method:             "GET",
 		PathPattern:        "/health",
@@ -52,7 +54,12 @@ func (a *Client) Health(params *HealthParams) (*HealthOK, error) {
 		Reader:             &HealthReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

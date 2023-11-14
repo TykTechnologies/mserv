@@ -16,52 +16,68 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewHealthParams creates a new HealthParams object
-// with the default values initialized.
+// NewHealthParams creates a new HealthParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewHealthParams() *HealthParams {
-
 	return &HealthParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewHealthParamsWithTimeout creates a new HealthParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewHealthParamsWithTimeout(timeout time.Duration) *HealthParams {
-
 	return &HealthParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewHealthParamsWithContext creates a new HealthParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewHealthParamsWithContext(ctx context.Context) *HealthParams {
-
 	return &HealthParams{
-
 		Context: ctx,
 	}
 }
 
 // NewHealthParamsWithHTTPClient creates a new HealthParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewHealthParamsWithHTTPClient(client *http.Client) *HealthParams {
-
 	return &HealthParams{
 		HTTPClient: client,
 	}
 }
 
-/*HealthParams contains all the parameters to send to the API endpoint
-for the health operation typically these are written to a http.Request
+/*
+HealthParams contains all the parameters to send to the API endpoint
+
+	for the health operation.
+
+	Typically these are written to a http.Request.
 */
 type HealthParams struct {
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the health params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *HealthParams) WithDefaults() *HealthParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the health params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *HealthParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the health params

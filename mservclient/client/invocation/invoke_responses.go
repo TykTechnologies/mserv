@@ -6,6 +6,7 @@ package invocation
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -37,9 +38,8 @@ func (o *InvokeReader) ReadResponse(response runtime.ClientResponse, consumer ru
 			return nil, err
 		}
 		return nil, result
-
 	default:
-		return nil, runtime.NewAPIError("unknown error", response, response.Code())
+		return nil, runtime.NewAPIError("[POST /execute/{name}] invoke", response, response.Code())
 	}
 }
 
@@ -48,7 +48,8 @@ func NewInvokeOK() *InvokeOK {
 	return &InvokeOK{}
 }
 
-/*InvokeOK handles this case with default header values.
+/*
+InvokeOK describes a response with status code 200, with default header values.
 
 Middleware invocation response
 */
@@ -56,7 +57,41 @@ type InvokeOK struct {
 	Payload *InvokeOKBody
 }
 
+// IsSuccess returns true when this invoke o k response has a 2xx status code
+func (o *InvokeOK) IsSuccess() bool {
+	return true
+}
+
+// IsRedirect returns true when this invoke o k response has a 3xx status code
+func (o *InvokeOK) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this invoke o k response has a 4xx status code
+func (o *InvokeOK) IsClientError() bool {
+	return false
+}
+
+// IsServerError returns true when this invoke o k response has a 5xx status code
+func (o *InvokeOK) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this invoke o k response a status code equal to that given
+func (o *InvokeOK) IsCode(code int) bool {
+	return code == 200
+}
+
+// Code gets the status code for the invoke o k response
+func (o *InvokeOK) Code() int {
+	return 200
+}
+
 func (o *InvokeOK) Error() string {
+	return fmt.Sprintf("[POST /execute/{name}][%d] invokeOK  %+v", 200, o.Payload)
+}
+
+func (o *InvokeOK) String() string {
 	return fmt.Sprintf("[POST /execute/{name}][%d] invokeOK  %+v", 200, o.Payload)
 }
 
@@ -81,7 +116,8 @@ func NewInvokeInternalServerError() *InvokeInternalServerError {
 	return &InvokeInternalServerError{}
 }
 
-/*InvokeInternalServerError handles this case with default header values.
+/*
+InvokeInternalServerError describes a response with status code 500, with default header values.
 
 Generic error specified by `Status` and `Error` fields
 */
@@ -89,7 +125,41 @@ type InvokeInternalServerError struct {
 	Payload *models.Payload
 }
 
+// IsSuccess returns true when this invoke internal server error response has a 2xx status code
+func (o *InvokeInternalServerError) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this invoke internal server error response has a 3xx status code
+func (o *InvokeInternalServerError) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this invoke internal server error response has a 4xx status code
+func (o *InvokeInternalServerError) IsClientError() bool {
+	return false
+}
+
+// IsServerError returns true when this invoke internal server error response has a 5xx status code
+func (o *InvokeInternalServerError) IsServerError() bool {
+	return true
+}
+
+// IsCode returns true when this invoke internal server error response a status code equal to that given
+func (o *InvokeInternalServerError) IsCode(code int) bool {
+	return code == 500
+}
+
+// Code gets the status code for the invoke internal server error response
+func (o *InvokeInternalServerError) Code() int {
+	return 500
+}
+
 func (o *InvokeInternalServerError) Error() string {
+	return fmt.Sprintf("[POST /execute/{name}][%d] invokeInternalServerError  %+v", 500, o.Payload)
+}
+
+func (o *InvokeInternalServerError) String() string {
 	return fmt.Sprintf("[POST /execute/{name}][%d] invokeInternalServerError  %+v", 500, o.Payload)
 }
 
@@ -109,7 +179,8 @@ func (o *InvokeInternalServerError) readResponse(response runtime.ClientResponse
 	return nil
 }
 
-/*InvokeOKBody invoke o k body
+/*
+InvokeOKBody invoke o k body
 swagger:model InvokeOKBody
 */
 type InvokeOKBody struct {
@@ -139,7 +210,6 @@ func (o *InvokeOKBody) Validate(formats strfmt.Registry) error {
 }
 
 func (o *InvokeOKBody) validatePayload(formats strfmt.Registry) error {
-
 	if swag.IsZero(o.Payload) { // not required
 		return nil
 	}
@@ -148,6 +218,43 @@ func (o *InvokeOKBody) validatePayload(formats strfmt.Registry) error {
 		if err := o.Payload.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("invokeOK" + "." + "Payload")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("invokeOK" + "." + "Payload")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this invoke o k body based on the context it is used
+func (o *InvokeOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.contextValidatePayload(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *InvokeOKBody) contextValidatePayload(ctx context.Context, formats strfmt.Registry) error {
+
+	if o.Payload != nil {
+
+		if swag.IsZero(o.Payload) { // not required
+			return nil
+		}
+
+		if err := o.Payload.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("invokeOK" + "." + "Payload")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("invokeOK" + "." + "Payload")
 			}
 			return err
 		}

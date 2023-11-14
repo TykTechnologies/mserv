@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -13,29 +14,39 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// AccessDefinition access definition
+// AccessDefinition AccessDefinition defines which versions of an API a key has access to
 //
 // swagger:model AccessDefinition
 type AccessDefinition struct {
 
-	// allowed urls
-	AllowedUrls []*AccessSpec `json:"allowed_urls"`
-
-	// Api Id
+	// API ID
 	APIID string `json:"api_id,omitempty"`
 
-	// Api name
+	// API name
 	APIName string `json:"api_name,omitempty"`
+
+	// allowance scope
+	AllowanceScope string `json:"allowance_scope,omitempty"`
+
+	// allowed u r ls
+	AllowedURLs []*AccessSpec `json:"allowed_urls"`
 
 	// versions
 	Versions []string `json:"versions"`
+
+	// limit
+	Limit *APILimit `json:"limit,omitempty"`
 }
 
 // Validate validates this access definition
 func (m *AccessDefinition) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAllowedUrls(formats); err != nil {
+	if err := m.validateAllowedURLs(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateLimit(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -45,26 +56,110 @@ func (m *AccessDefinition) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *AccessDefinition) validateAllowedUrls(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.AllowedUrls) { // not required
+func (m *AccessDefinition) validateAllowedURLs(formats strfmt.Registry) error {
+	if swag.IsZero(m.AllowedURLs) { // not required
 		return nil
 	}
 
-	for i := 0; i < len(m.AllowedUrls); i++ {
-		if swag.IsZero(m.AllowedUrls[i]) { // not required
+	for i := 0; i < len(m.AllowedURLs); i++ {
+		if swag.IsZero(m.AllowedURLs[i]) { // not required
 			continue
 		}
 
-		if m.AllowedUrls[i] != nil {
-			if err := m.AllowedUrls[i].Validate(formats); err != nil {
+		if m.AllowedURLs[i] != nil {
+			if err := m.AllowedURLs[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("allowed_urls" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("allowed_urls" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
 		}
 
+	}
+
+	return nil
+}
+
+func (m *AccessDefinition) validateLimit(formats strfmt.Registry) error {
+	if swag.IsZero(m.Limit) { // not required
+		return nil
+	}
+
+	if m.Limit != nil {
+		if err := m.Limit.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("limit")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("limit")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this access definition based on the context it is used
+func (m *AccessDefinition) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAllowedURLs(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateLimit(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *AccessDefinition) contextValidateAllowedURLs(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.AllowedURLs); i++ {
+
+		if m.AllowedURLs[i] != nil {
+
+			if swag.IsZero(m.AllowedURLs[i]) { // not required
+				return nil
+			}
+
+			if err := m.AllowedURLs[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("allowed_urls" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("allowed_urls" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *AccessDefinition) contextValidateLimit(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Limit != nil {
+
+		if swag.IsZero(m.Limit) { // not required
+			return nil
+		}
+
+		if err := m.Limit.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("limit")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("limit")
+			}
+			return err
+		}
 	}
 
 	return nil

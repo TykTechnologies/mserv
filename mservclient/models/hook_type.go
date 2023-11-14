@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 )
 
@@ -16,5 +18,10 @@ type HookType int32
 
 // Validate validates this hook type
 func (m HookType) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this hook type based on context it is used
+func (m HookType) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

@@ -17,60 +17,78 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// NewMwAddParams creates a new MwAddParams object
-// with the default values initialized.
+// NewMwAddParams creates a new MwAddParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewMwAddParams() *MwAddParams {
-	var ()
 	return &MwAddParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewMwAddParamsWithTimeout creates a new MwAddParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewMwAddParamsWithTimeout(timeout time.Duration) *MwAddParams {
-	var ()
 	return &MwAddParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewMwAddParamsWithContext creates a new MwAddParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewMwAddParamsWithContext(ctx context.Context) *MwAddParams {
-	var ()
 	return &MwAddParams{
-
 		Context: ctx,
 	}
 }
 
 // NewMwAddParamsWithHTTPClient creates a new MwAddParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewMwAddParamsWithHTTPClient(client *http.Client) *MwAddParams {
-	var ()
 	return &MwAddParams{
 		HTTPClient: client,
 	}
 }
 
-/*MwAddParams contains all the parameters to send to the API endpoint
-for the mw add operation typically these are written to a http.Request
+/*
+MwAddParams contains all the parameters to send to the API endpoint
+
+	for the mw add operation.
+
+	Typically these are written to a http.Request.
 */
 type MwAddParams struct {
 
-	/*APIID*/
+	// APIID.
 	APIID *string
-	/*StoreOnly*/
+
+	// StoreOnly.
 	StoreOnly *bool
-	/*Uploadfile*/
+
+	// Uploadfile.
 	UploadFile runtime.NamedReadCloser
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the mw add params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwAddParams) WithDefaults() *MwAddParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the mw add params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwAddParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the mw add params
@@ -141,6 +159,7 @@ func (o *MwAddParams) SetUploadFile(uploadfile runtime.NamedReadCloser) {
 
 // WriteToRequest writes these params to a swagger request
 func (o *MwAddParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
+
 	if err := r.SetTimeout(o.timeout); err != nil {
 		return err
 	}
@@ -150,34 +169,35 @@ func (o *MwAddParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registr
 
 		// query param api_id
 		var qrAPIID string
+
 		if o.APIID != nil {
 			qrAPIID = *o.APIID
 		}
 		qAPIID := qrAPIID
 		if qAPIID != "" {
+
 			if err := r.SetQueryParam("api_id", qAPIID); err != nil {
 				return err
 			}
 		}
-
 	}
 
 	if o.StoreOnly != nil {
 
 		// query param store_only
 		var qrStoreOnly bool
+
 		if o.StoreOnly != nil {
 			qrStoreOnly = *o.StoreOnly
 		}
 		qStoreOnly := swag.FormatBool(qrStoreOnly)
 		if qStoreOnly != "" {
+
 			if err := r.SetQueryParam("store_only", qStoreOnly); err != nil {
 				return err
 			}
 		}
-
 	}
-
 	// form file param uploadfile
 	if err := r.SetFileParam("uploadfile", o.UploadFile); err != nil {
 		return err

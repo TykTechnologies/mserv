@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 )
 
@@ -16,5 +18,10 @@ type MiddlewareDriver string
 
 // Validate validates this middleware driver
 func (m MiddlewareDriver) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this middleware driver based on context it is used
+func (m MiddlewareDriver) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

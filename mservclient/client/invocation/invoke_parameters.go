@@ -18,58 +18,75 @@ import (
 	"github.com/TykTechnologies/mserv/mservclient/models"
 )
 
-// NewInvokeParams creates a new InvokeParams object
-// with the default values initialized.
+// NewInvokeParams creates a new InvokeParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewInvokeParams() *InvokeParams {
-	var ()
 	return &InvokeParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewInvokeParamsWithTimeout creates a new InvokeParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewInvokeParamsWithTimeout(timeout time.Duration) *InvokeParams {
-	var ()
 	return &InvokeParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewInvokeParamsWithContext creates a new InvokeParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewInvokeParamsWithContext(ctx context.Context) *InvokeParams {
-	var ()
 	return &InvokeParams{
-
 		Context: ctx,
 	}
 }
 
 // NewInvokeParamsWithHTTPClient creates a new InvokeParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewInvokeParamsWithHTTPClient(client *http.Client) *InvokeParams {
-	var ()
 	return &InvokeParams{
 		HTTPClient: client,
 	}
 }
 
-/*InvokeParams contains all the parameters to send to the API endpoint
-for the invoke operation typically these are written to a http.Request
+/*
+InvokeParams contains all the parameters to send to the API endpoint
+
+	for the invoke operation.
+
+	Typically these are written to a http.Request.
 */
 type InvokeParams struct {
 
-	/*Body*/
+	// Body.
 	Body *models.Object
-	/*Name*/
+
+	// Name.
 	Name string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the invoke params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *InvokeParams) WithDefaults() *InvokeParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the invoke params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *InvokeParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the invoke params
@@ -134,7 +151,6 @@ func (o *InvokeParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Regist
 		return err
 	}
 	var res []error
-
 	if o.Body != nil {
 		if err := r.SetBodyParam(o.Body); err != nil {
 			return err

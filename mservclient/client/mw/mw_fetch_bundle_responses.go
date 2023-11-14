@@ -35,9 +35,8 @@ func (o *MwFetchBundleReader) ReadResponse(response runtime.ClientResponse, cons
 			return nil, err
 		}
 		return nil, result
-
 	default:
-		return nil, runtime.NewAPIError("unknown error", response, response.Code())
+		return nil, runtime.NewAPIError("[GET /api/mw/bundle/{id}] mwFetchBundle", response, response.Code())
 	}
 }
 
@@ -46,7 +45,8 @@ func NewMwFetchBundleOK() *MwFetchBundleOK {
 	return &MwFetchBundleOK{}
 }
 
-/*MwFetchBundleOK handles this case with default header values.
+/*
+MwFetchBundleOK describes a response with status code 200, with default header values.
 
 Middleware bundle as a file
 */
@@ -54,7 +54,41 @@ type MwFetchBundleOK struct {
 	Payload *models.File
 }
 
+// IsSuccess returns true when this mw fetch bundle o k response has a 2xx status code
+func (o *MwFetchBundleOK) IsSuccess() bool {
+	return true
+}
+
+// IsRedirect returns true when this mw fetch bundle o k response has a 3xx status code
+func (o *MwFetchBundleOK) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this mw fetch bundle o k response has a 4xx status code
+func (o *MwFetchBundleOK) IsClientError() bool {
+	return false
+}
+
+// IsServerError returns true when this mw fetch bundle o k response has a 5xx status code
+func (o *MwFetchBundleOK) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this mw fetch bundle o k response a status code equal to that given
+func (o *MwFetchBundleOK) IsCode(code int) bool {
+	return code == 200
+}
+
+// Code gets the status code for the mw fetch bundle o k response
+func (o *MwFetchBundleOK) Code() int {
+	return 200
+}
+
 func (o *MwFetchBundleOK) Error() string {
+	return fmt.Sprintf("[GET /api/mw/bundle/{id}][%d] mwFetchBundleOK  %+v", 200, o.Payload)
+}
+
+func (o *MwFetchBundleOK) String() string {
 	return fmt.Sprintf("[GET /api/mw/bundle/{id}][%d] mwFetchBundleOK  %+v", 200, o.Payload)
 }
 
@@ -79,7 +113,8 @@ func NewMwFetchBundleInternalServerError() *MwFetchBundleInternalServerError {
 	return &MwFetchBundleInternalServerError{}
 }
 
-/*MwFetchBundleInternalServerError handles this case with default header values.
+/*
+MwFetchBundleInternalServerError describes a response with status code 500, with default header values.
 
 Generic error specified by `Status` and `Error` fields
 */
@@ -87,7 +122,41 @@ type MwFetchBundleInternalServerError struct {
 	Payload *models.Payload
 }
 
+// IsSuccess returns true when this mw fetch bundle internal server error response has a 2xx status code
+func (o *MwFetchBundleInternalServerError) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this mw fetch bundle internal server error response has a 3xx status code
+func (o *MwFetchBundleInternalServerError) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this mw fetch bundle internal server error response has a 4xx status code
+func (o *MwFetchBundleInternalServerError) IsClientError() bool {
+	return false
+}
+
+// IsServerError returns true when this mw fetch bundle internal server error response has a 5xx status code
+func (o *MwFetchBundleInternalServerError) IsServerError() bool {
+	return true
+}
+
+// IsCode returns true when this mw fetch bundle internal server error response a status code equal to that given
+func (o *MwFetchBundleInternalServerError) IsCode(code int) bool {
+	return code == 500
+}
+
+// Code gets the status code for the mw fetch bundle internal server error response
+func (o *MwFetchBundleInternalServerError) Code() int {
+	return 500
+}
+
 func (o *MwFetchBundleInternalServerError) Error() string {
+	return fmt.Sprintf("[GET /api/mw/bundle/{id}][%d] mwFetchBundleInternalServerError  %+v", 500, o.Payload)
+}
+
+func (o *MwFetchBundleInternalServerError) String() string {
 	return fmt.Sprintf("[GET /api/mw/bundle/{id}][%d] mwFetchBundleInternalServerError  %+v", 500, o.Payload)
 }
 

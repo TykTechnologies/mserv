@@ -6,6 +6,7 @@ package mw
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -37,9 +38,8 @@ func (o *MwDeleteReader) ReadResponse(response runtime.ClientResponse, consumer 
 			return nil, err
 		}
 		return nil, result
-
 	default:
-		return nil, runtime.NewAPIError("unknown error", response, response.Code())
+		return nil, runtime.NewAPIError("[DELETE /api/mw/{id}] mwDelete", response, response.Code())
 	}
 }
 
@@ -48,7 +48,8 @@ func NewMwDeleteOK() *MwDeleteOK {
 	return &MwDeleteOK{}
 }
 
-/*MwDeleteOK handles this case with default header values.
+/*
+MwDeleteOK describes a response with status code 200, with default header values.
 
 Response that only includes the ID of the middleware as `BundleID` in the `Payload`
 */
@@ -56,7 +57,41 @@ type MwDeleteOK struct {
 	Payload *MwDeleteOKBody
 }
 
+// IsSuccess returns true when this mw delete o k response has a 2xx status code
+func (o *MwDeleteOK) IsSuccess() bool {
+	return true
+}
+
+// IsRedirect returns true when this mw delete o k response has a 3xx status code
+func (o *MwDeleteOK) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this mw delete o k response has a 4xx status code
+func (o *MwDeleteOK) IsClientError() bool {
+	return false
+}
+
+// IsServerError returns true when this mw delete o k response has a 5xx status code
+func (o *MwDeleteOK) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this mw delete o k response a status code equal to that given
+func (o *MwDeleteOK) IsCode(code int) bool {
+	return code == 200
+}
+
+// Code gets the status code for the mw delete o k response
+func (o *MwDeleteOK) Code() int {
+	return 200
+}
+
 func (o *MwDeleteOK) Error() string {
+	return fmt.Sprintf("[DELETE /api/mw/{id}][%d] mwDeleteOK  %+v", 200, o.Payload)
+}
+
+func (o *MwDeleteOK) String() string {
 	return fmt.Sprintf("[DELETE /api/mw/{id}][%d] mwDeleteOK  %+v", 200, o.Payload)
 }
 
@@ -81,7 +116,8 @@ func NewMwDeleteInternalServerError() *MwDeleteInternalServerError {
 	return &MwDeleteInternalServerError{}
 }
 
-/*MwDeleteInternalServerError handles this case with default header values.
+/*
+MwDeleteInternalServerError describes a response with status code 500, with default header values.
 
 Generic error specified by `Status` and `Error` fields
 */
@@ -89,7 +125,41 @@ type MwDeleteInternalServerError struct {
 	Payload *models.Payload
 }
 
+// IsSuccess returns true when this mw delete internal server error response has a 2xx status code
+func (o *MwDeleteInternalServerError) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this mw delete internal server error response has a 3xx status code
+func (o *MwDeleteInternalServerError) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this mw delete internal server error response has a 4xx status code
+func (o *MwDeleteInternalServerError) IsClientError() bool {
+	return false
+}
+
+// IsServerError returns true when this mw delete internal server error response has a 5xx status code
+func (o *MwDeleteInternalServerError) IsServerError() bool {
+	return true
+}
+
+// IsCode returns true when this mw delete internal server error response a status code equal to that given
+func (o *MwDeleteInternalServerError) IsCode(code int) bool {
+	return code == 500
+}
+
+// Code gets the status code for the mw delete internal server error response
+func (o *MwDeleteInternalServerError) Code() int {
+	return 500
+}
+
 func (o *MwDeleteInternalServerError) Error() string {
+	return fmt.Sprintf("[DELETE /api/mw/{id}][%d] mwDeleteInternalServerError  %+v", 500, o.Payload)
+}
+
+func (o *MwDeleteInternalServerError) String() string {
 	return fmt.Sprintf("[DELETE /api/mw/{id}][%d] mwDeleteInternalServerError  %+v", 500, o.Payload)
 }
 
@@ -109,7 +179,8 @@ func (o *MwDeleteInternalServerError) readResponse(response runtime.ClientRespon
 	return nil
 }
 
-/*MwDeleteOKBody mw delete o k body
+/*
+MwDeleteOKBody mw delete o k body
 swagger:model MwDeleteOKBody
 */
 type MwDeleteOKBody struct {
@@ -139,7 +210,6 @@ func (o *MwDeleteOKBody) Validate(formats strfmt.Registry) error {
 }
 
 func (o *MwDeleteOKBody) validatePayload(formats strfmt.Registry) error {
-
 	if swag.IsZero(o.Payload) { // not required
 		return nil
 	}
@@ -148,6 +218,43 @@ func (o *MwDeleteOKBody) validatePayload(formats strfmt.Registry) error {
 		if err := o.Payload.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("mwDeleteOK" + "." + "Payload")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("mwDeleteOK" + "." + "Payload")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this mw delete o k body based on the context it is used
+func (o *MwDeleteOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.contextValidatePayload(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *MwDeleteOKBody) contextValidatePayload(ctx context.Context, formats strfmt.Registry) error {
+
+	if o.Payload != nil {
+
+		if swag.IsZero(o.Payload) { // not required
+			return nil
+		}
+
+		if err := o.Payload.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("mwDeleteOK" + "." + "Payload")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("mwDeleteOK" + "." + "Payload")
 			}
 			return err
 		}
@@ -174,7 +281,8 @@ func (o *MwDeleteOKBody) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
-/*MwDeleteOKBodyPayload mw delete o k body payload
+/*
+MwDeleteOKBodyPayload mw delete o k body payload
 swagger:model MwDeleteOKBodyPayload
 */
 type MwDeleteOKBodyPayload struct {
@@ -185,6 +293,11 @@ type MwDeleteOKBodyPayload struct {
 
 // Validate validates this mw delete o k body payload
 func (o *MwDeleteOKBodyPayload) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this mw delete o k body payload based on context it is used
+func (o *MwDeleteOKBodyPayload) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

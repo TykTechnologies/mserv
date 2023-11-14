@@ -15,7 +15,7 @@ import (
 	"github.com/TykTechnologies/mserv/mservclient/client/system"
 )
 
-// Default mserv HTTP client.
+// Default mserv API HTTP client.
 var Default = NewHTTPClient(nil)
 
 const (
@@ -30,14 +30,14 @@ const (
 // DefaultSchemes are the default schemes found in Meta (info) section of spec file
 var DefaultSchemes = []string{"http", "https"}
 
-// NewHTTPClient creates a new mserv HTTP client.
-func NewHTTPClient(formats strfmt.Registry) *Mserv {
+// NewHTTPClient creates a new mserv API HTTP client.
+func NewHTTPClient(formats strfmt.Registry) *MservAPI {
 	return NewHTTPClientWithConfig(formats, nil)
 }
 
-// NewHTTPClientWithConfig creates a new mserv HTTP client,
+// NewHTTPClientWithConfig creates a new mserv API HTTP client,
 // using a customizable transport config.
-func NewHTTPClientWithConfig(formats strfmt.Registry, cfg *TransportConfig) *Mserv {
+func NewHTTPClientWithConfig(formats strfmt.Registry, cfg *TransportConfig) *MservAPI {
 	// ensure nullable parameters have default
 	if cfg == nil {
 		cfg = DefaultTransportConfig()
@@ -48,14 +48,14 @@ func NewHTTPClientWithConfig(formats strfmt.Registry, cfg *TransportConfig) *Mse
 	return New(transport, formats)
 }
 
-// New creates a new mserv client
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Mserv {
+// New creates a new mserv API client
+func New(transport runtime.ClientTransport, formats strfmt.Registry) *MservAPI {
 	// ensure nullable parameters have default
 	if formats == nil {
 		formats = strfmt.Default
 	}
 
-	cli := new(Mserv)
+	cli := new(MservAPI)
 	cli.Transport = transport
 	cli.Invocation = invocation.New(transport, formats)
 	cli.Mw = mw.New(transport, formats)
@@ -102,8 +102,8 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 	return cfg
 }
 
-// Mserv is a client for mserv
-type Mserv struct {
+// MservAPI is a client for mserv API
+type MservAPI struct {
 	Invocation invocation.ClientService
 
 	Mw mw.ClientService
@@ -114,7 +114,7 @@ type Mserv struct {
 }
 
 // SetTransport changes the transport on the client and all its subresources
-func (c *Mserv) SetTransport(transport runtime.ClientTransport) {
+func (c *MservAPI) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
 	c.Invocation.SetTransport(transport)
 	c.Mw.SetTransport(transport)

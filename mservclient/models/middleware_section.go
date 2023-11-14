@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -79,7 +80,6 @@ func (m *MiddlewareSection) Validate(formats strfmt.Registry) error {
 }
 
 func (m *MiddlewareSection) validatePost(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Post) { // not required
 		return nil
 	}
@@ -93,6 +93,8 @@ func (m *MiddlewareSection) validatePost(formats strfmt.Registry) error {
 			if err := m.Post[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("post" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("post" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -104,7 +106,6 @@ func (m *MiddlewareSection) validatePost(formats strfmt.Registry) error {
 }
 
 func (m *MiddlewareSection) validatePostKeyAuth(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.PostKeyAuth) { // not required
 		return nil
 	}
@@ -118,6 +119,8 @@ func (m *MiddlewareSection) validatePostKeyAuth(formats strfmt.Registry) error {
 			if err := m.PostKeyAuth[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("post_key_auth" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("post_key_auth" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -129,7 +132,6 @@ func (m *MiddlewareSection) validatePostKeyAuth(formats strfmt.Registry) error {
 }
 
 func (m *MiddlewareSection) validatePre(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Pre) { // not required
 		return nil
 	}
@@ -143,6 +145,8 @@ func (m *MiddlewareSection) validatePre(formats strfmt.Registry) error {
 			if err := m.Pre[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("pre" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("pre" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -154,7 +158,6 @@ func (m *MiddlewareSection) validatePre(formats strfmt.Registry) error {
 }
 
 func (m *MiddlewareSection) validateResponse(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Response) { // not required
 		return nil
 	}
@@ -168,6 +171,8 @@ func (m *MiddlewareSection) validateResponse(formats strfmt.Registry) error {
 			if err := m.Response[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("response" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("response" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -179,7 +184,6 @@ func (m *MiddlewareSection) validateResponse(formats strfmt.Registry) error {
 }
 
 func (m *MiddlewareSection) validateAuthCheck(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AuthCheck) { // not required
 		return nil
 	}
@@ -188,6 +192,8 @@ func (m *MiddlewareSection) validateAuthCheck(formats strfmt.Registry) error {
 		if err := m.AuthCheck.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("auth_check")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("auth_check")
 			}
 			return err
 		}
@@ -197,7 +203,6 @@ func (m *MiddlewareSection) validateAuthCheck(formats strfmt.Registry) error {
 }
 
 func (m *MiddlewareSection) validateDriver(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Driver) { // not required
 		return nil
 	}
@@ -205,6 +210,8 @@ func (m *MiddlewareSection) validateDriver(formats strfmt.Registry) error {
 	if err := m.Driver.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("driver")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("driver")
 		}
 		return err
 	}
@@ -213,7 +220,6 @@ func (m *MiddlewareSection) validateDriver(formats strfmt.Registry) error {
 }
 
 func (m *MiddlewareSection) validateIDExtractor(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.IDExtractor) { // not required
 		return nil
 	}
@@ -222,6 +228,206 @@ func (m *MiddlewareSection) validateIDExtractor(formats strfmt.Registry) error {
 		if err := m.IDExtractor.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("id_extractor")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("id_extractor")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this middleware section based on the context it is used
+func (m *MiddlewareSection) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidatePost(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidatePostKeyAuth(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidatePre(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateResponse(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateAuthCheck(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDriver(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateIDExtractor(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MiddlewareSection) contextValidatePost(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Post); i++ {
+
+		if m.Post[i] != nil {
+
+			if swag.IsZero(m.Post[i]) { // not required
+				return nil
+			}
+
+			if err := m.Post[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("post" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("post" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *MiddlewareSection) contextValidatePostKeyAuth(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.PostKeyAuth); i++ {
+
+		if m.PostKeyAuth[i] != nil {
+
+			if swag.IsZero(m.PostKeyAuth[i]) { // not required
+				return nil
+			}
+
+			if err := m.PostKeyAuth[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("post_key_auth" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("post_key_auth" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *MiddlewareSection) contextValidatePre(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Pre); i++ {
+
+		if m.Pre[i] != nil {
+
+			if swag.IsZero(m.Pre[i]) { // not required
+				return nil
+			}
+
+			if err := m.Pre[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("pre" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("pre" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *MiddlewareSection) contextValidateResponse(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Response); i++ {
+
+		if m.Response[i] != nil {
+
+			if swag.IsZero(m.Response[i]) { // not required
+				return nil
+			}
+
+			if err := m.Response[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("response" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("response" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *MiddlewareSection) contextValidateAuthCheck(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.AuthCheck != nil {
+
+		if swag.IsZero(m.AuthCheck) { // not required
+			return nil
+		}
+
+		if err := m.AuthCheck.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("auth_check")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("auth_check")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MiddlewareSection) contextValidateDriver(ctx context.Context, formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Driver) { // not required
+		return nil
+	}
+
+	if err := m.Driver.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("driver")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("driver")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MiddlewareSection) contextValidateIDExtractor(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.IDExtractor != nil {
+
+		if swag.IsZero(m.IDExtractor) { // not required
+			return nil
+		}
+
+		if err := m.IDExtractor.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("id_extractor")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("id_extractor")
 			}
 			return err
 		}

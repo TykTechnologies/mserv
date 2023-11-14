@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -42,7 +44,6 @@ func (m *File) Validate(formats strfmt.Registry) error {
 }
 
 func (m *File) validateData(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Data) { // not required
 		return nil
 	}
@@ -51,6 +52,8 @@ func (m *File) validateData(formats strfmt.Registry) error {
 		if err := m.Data.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("Data")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("Data")
 			}
 			return err
 		}
@@ -60,7 +63,6 @@ func (m *File) validateData(formats strfmt.Registry) error {
 }
 
 func (m *File) validateHeader(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Header) { // not required
 		return nil
 	}
@@ -69,6 +71,68 @@ func (m *File) validateHeader(formats strfmt.Registry) error {
 		if err := m.Header.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("Header")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("Header")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this file based on the context it is used
+func (m *File) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateData(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateHeader(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *File) contextValidateData(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Data != nil {
+
+		if swag.IsZero(m.Data) { // not required
+			return nil
+		}
+
+		if err := m.Data.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("Data")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("Data")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *File) contextValidateHeader(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Header != nil {
+
+		if swag.IsZero(m.Header) { // not required
+			return nil
+		}
+
+		if err := m.Header.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("Header")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("Header")
 			}
 			return err
 		}
