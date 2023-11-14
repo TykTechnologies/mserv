@@ -1,6 +1,7 @@
 package slave
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -34,7 +35,7 @@ func (c *Client) defaultAuth() runtime.ClientAuthInfoWriter {
 	return httptransport.APIKeyAuth("X-Api-Key", "header", c.conf.Secret)
 }
 
-func (c *Client) GetMWByID(id string) (*storage.MW, error) {
+func (c *Client) GetMWByID(_ context.Context, id string) (*storage.MW, error) {
 	params := mw.NewMwFetchParams().WithID(id)
 	resp, err := c.mservapi.Mw.MwFetch(params, c.defaultAuth())
 	if err != nil {
@@ -45,11 +46,11 @@ func (c *Client) GetMWByID(id string) (*storage.MW, error) {
 }
 
 // GetMWByAPIID is not yet implemented.
-func (c *Client) GetMWByAPIID(apiID string) (*storage.MW, error) {
+func (c *Client) GetMWByAPIID(_ context.Context, _ string) (*storage.MW, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *Client) GetAllActive() ([]*storage.MW, error) {
+func (c *Client) GetAllActive(_ context.Context) ([]*storage.MW, error) {
 	resp, err := c.mservapi.Mw.MwListAll(mw.NewMwListAllParams(), c.defaultAuth())
 	if err != nil {
 		return nil, err
@@ -67,19 +68,19 @@ func (c *Client) GetAllActive() ([]*storage.MW, error) {
 	return mws, nil
 }
 
-func (c *Client) CreateMW(mw *storage.MW) (string, error) {
+func (c *Client) CreateMW(_ context.Context, _ *storage.MW) (string, error) {
 	return "", errors.New("not implemented")
 }
 
-func (c *Client) UpdateMW(mw *storage.MW) (string, error) {
+func (c *Client) UpdateMW(_ context.Context, _ *storage.MW) (string, error) {
 	return "", errors.New("not implemented")
 }
 
-func (c *Client) DeleteMW(id string) error {
+func (c *Client) DeleteMW(_ context.Context, _ string) error {
 	return errors.New("not implemented")
 }
 
-func (c *Client) InitMservStore(tag string) error {
+func (c *Client) InitMservStore(_ context.Context, tag string) error {
 	c.tag = tag
 	cnf, ok := GetConf().ServiceStore[tag]
 	if !ok {

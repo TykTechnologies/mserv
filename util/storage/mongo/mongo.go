@@ -1,13 +1,15 @@
 package mongo
 
 import (
-	"crypto/tls"
+	"context"
 	"fmt"
-	"net"
 	"time"
 
 	"github.com/patrickmn/go-cache"
-	"gopkg.in/mgo.v2"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 
 	"github.com/TykTechnologies/mserv/util/logger"
 )
@@ -17,7 +19,7 @@ const (
 )
 
 type Store struct {
-	ms          *mgo.Session
+	db          *mongo.Database
 	conf        *MgoStoreConf
 	objCache    *cache.Cache
 	tag         string
@@ -48,34 +50,37 @@ func (m *Store) Init() error {
 	m.conf = c
 	log.Info("initialising mgo store")
 
-	var session *mgo.Session
-	var err error
-	if m.conf.UseTLS {
-		log.Info("TLS enabled")
-		dialInfo, mErr := mgo.ParseURL(m.conf.ConnStr)
-		if mErr != nil {
-			return mErr
-		}
-
-		dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
-			return tls.Dial("tcp", addr.String(), &tls.Config{})
-		}
-
-		session, err = mgo.DialWithInfo(dialInfo)
-	} else {
-		session, err = mgo.Dial(m.conf.ConnStr)
-	}
-
+	cs, err := connstring.ParseAndValidate(m.conf.ConnStr)
 	if err != nil {
-		log.Error(err)
-		return err
+		return fmt.Errorf("error validating mongo connection string: %w", err)
 	}
 
-	m.ms = session
+	opts := options.Client().
+		ApplyURI(m.conf.ConnStr)
+
+	if err := opts.Validate(); err != nil {
+		return fmt.Errorf("error validating mongodb settings: %w", err)
+	}
+
+	// Connect to MongoDB.
+	mgo, err := mongo.Connect(context.Background(), opts)
+	if err != nil {
+		return fmt.Errorf("error connectiong to mongodb: %w", err)
+	}
+
+	// Verify that we have active DB connection.
+	if err := mgo.Ping(context.Background(), readpref.Primary()); err != nil {
+		return fmt.Errorf("error pinging mongodb: %w", err)
+	}
+
+	// Connect to default database.
+	m.db = mgo.Database(cs.Database)
 
 	log.Info("Initialising cache")
 	m.objCache = cache.New(1*time.Minute, 5*time.Minute)
+
 	m.initialised = true
+
 	return nil
 }
 

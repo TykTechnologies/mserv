@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net"
@@ -59,7 +60,7 @@ func prog(state overseer.State) {
 		log.Fatal("store does not implement MservStore")
 	}
 
-	err = store.InitMservStore(conf.Mserv.StorageTag)
+	err = store.InitMservStore(context.Background(), conf.Mserv.StorageTag)
 	if err != nil {
 		log.Fatal("store failed to init: ", err)
 	}
@@ -92,7 +93,8 @@ func prog(state overseer.State) {
 		// First run, fetch all plugins so we can init properly
 		// log.Warning("SKIPPING PLUGIN FETCH AND INIT")
 		log.Warning("fetching latest plugin list")
-		alPLs, err := store.GetAllActive()
+
+		alPLs, err := store.GetAllActive(context.Background())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -132,7 +134,7 @@ func pollForActiveMWs(store storage.MservStore) {
 	for {
 		time.Sleep(interval)
 
-		alPLs, err := store.GetAllActive()
+		alPLs, err := store.GetAllActive(context.Background())
 		if err != nil {
 			log.Error(err)
 		}
