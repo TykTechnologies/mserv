@@ -12,7 +12,7 @@ require (
 	github.com/go-openapi/swag v0.19.5
 	github.com/go-openapi/validate v0.19.3
 	github.com/golang/protobuf v1.3.3
-	github.com/gorilla/mux v1.7.3
+	github.com/gorilla/mux v1.8.1
 	github.com/graymeta/stow v0.2.4
 	github.com/jpillora/overseer v0.0.0-20191216115108-e26c3c66567f
 	github.com/kelseyhightower/envconfig v1.4.0
