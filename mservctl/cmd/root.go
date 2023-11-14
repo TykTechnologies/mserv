@@ -16,7 +16,7 @@ import (
 
 var (
 	cfgFile  string
-	mservapi *client.Mserv
+	mservapi *client.MservAPI
 )
 
 var log = logger.GetLogger("mservctl")
