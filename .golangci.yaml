@@ -46,8 +46,10 @@ linters-settings:
     extra-rules: true
 
   govet:
-    check-shadowing: true
     enable-all: true
+    disable:
+      - fieldalignment
+      - shadow
 
   lll:
     line-length: 120
