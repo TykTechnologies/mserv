@@ -28,6 +28,17 @@ testcases:
         - result.code ShouldEqual 0
         - result.systemout MustContainSubstring {{.Push.bundle}}
 
+  - name: Update
+    steps:
+    - script: ../bin/mservctl update -e http://localhost:8989 {{.Push.bundle}} ../bundles/simple/bundle.zip
+      assertions:
+      - result.code ShouldEqual 0
+      - result.systemerr MustContainSubstring Middleware uploaded successfully, ID
+      vars:
+        bundle:
+          from: result.systemerr
+          regex: "Middleware uploaded successfully, ID: ([a-z0-9-]+)"
+
   - name: Delete
     steps:
        - script: ../bin/mservctl delete -e http://localhost:8989 {{.Push.bundle}}
