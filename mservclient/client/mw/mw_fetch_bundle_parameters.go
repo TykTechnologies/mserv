@@ -16,56 +16,72 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewMwFetchBundleParams creates a new MwFetchBundleParams object
-// with the default values initialized.
+// NewMwFetchBundleParams creates a new MwFetchBundleParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewMwFetchBundleParams() *MwFetchBundleParams {
-	var ()
 	return &MwFetchBundleParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewMwFetchBundleParamsWithTimeout creates a new MwFetchBundleParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewMwFetchBundleParamsWithTimeout(timeout time.Duration) *MwFetchBundleParams {
-	var ()
 	return &MwFetchBundleParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewMwFetchBundleParamsWithContext creates a new MwFetchBundleParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewMwFetchBundleParamsWithContext(ctx context.Context) *MwFetchBundleParams {
-	var ()
 	return &MwFetchBundleParams{
-
 		Context: ctx,
 	}
 }
 
 // NewMwFetchBundleParamsWithHTTPClient creates a new MwFetchBundleParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewMwFetchBundleParamsWithHTTPClient(client *http.Client) *MwFetchBundleParams {
-	var ()
 	return &MwFetchBundleParams{
 		HTTPClient: client,
 	}
 }
 
-/*MwFetchBundleParams contains all the parameters to send to the API endpoint
-for the mw fetch bundle operation typically these are written to a http.Request
+/*
+MwFetchBundleParams contains all the parameters to send to the API endpoint
+
+	for the mw fetch bundle operation.
+
+	Typically these are written to a http.Request.
 */
 type MwFetchBundleParams struct {
 
-	/*ID*/
+	// ID.
 	ID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the mw fetch bundle params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwFetchBundleParams) WithDefaults() *MwFetchBundleParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the mw fetch bundle params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwFetchBundleParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the mw fetch bundle params

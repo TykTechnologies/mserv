@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -44,7 +46,6 @@ func (m *BundleManifest) Validate(formats strfmt.Registry) error {
 }
 
 func (m *BundleManifest) validateCustomMiddleware(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.CustomMiddleware) { // not required
 		return nil
 	}
@@ -53,6 +54,43 @@ func (m *BundleManifest) validateCustomMiddleware(formats strfmt.Registry) error
 		if err := m.CustomMiddleware.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("custom_middleware")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("custom_middleware")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this bundle manifest based on the context it is used
+func (m *BundleManifest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateCustomMiddleware(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *BundleManifest) contextValidateCustomMiddleware(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.CustomMiddleware != nil {
+
+		if swag.IsZero(m.CustomMiddleware) { // not required
+			return nil
+		}
+
+		if err := m.CustomMiddleware.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("custom_middleware")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("custom_middleware")
 			}
 			return err
 		}

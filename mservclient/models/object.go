@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -58,7 +60,6 @@ func (m *Object) Validate(formats strfmt.Registry) error {
 }
 
 func (m *Object) validateHookType(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.HookType) { // not required
 		return nil
 	}
@@ -66,6 +67,8 @@ func (m *Object) validateHookType(formats strfmt.Registry) error {
 	if err := m.HookType.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("hook_type")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("hook_type")
 		}
 		return err
 	}
@@ -74,7 +77,6 @@ func (m *Object) validateHookType(formats strfmt.Registry) error {
 }
 
 func (m *Object) validateRequest(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Request) { // not required
 		return nil
 	}
@@ -83,6 +85,8 @@ func (m *Object) validateRequest(formats strfmt.Registry) error {
 		if err := m.Request.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("request")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("request")
 			}
 			return err
 		}
@@ -92,7 +96,6 @@ func (m *Object) validateRequest(formats strfmt.Registry) error {
 }
 
 func (m *Object) validateSession(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Session) { // not required
 		return nil
 	}
@@ -101,6 +104,90 @@ func (m *Object) validateSession(formats strfmt.Registry) error {
 		if err := m.Session.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("session")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("session")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this object based on the context it is used
+func (m *Object) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateHookType(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateRequest(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSession(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Object) contextValidateHookType(ctx context.Context, formats strfmt.Registry) error {
+
+	if swag.IsZero(m.HookType) { // not required
+		return nil
+	}
+
+	if err := m.HookType.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("hook_type")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("hook_type")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Object) contextValidateRequest(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Request != nil {
+
+		if swag.IsZero(m.Request) { // not required
+			return nil
+		}
+
+		if err := m.Request.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("request")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("request")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Object) contextValidateSession(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Session != nil {
+
+		if swag.IsZero(m.Session) { // not required
+			return nil
+		}
+
+		if err := m.Session.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("session")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("session")
 			}
 			return err
 		}

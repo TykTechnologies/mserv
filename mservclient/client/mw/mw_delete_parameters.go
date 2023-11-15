@@ -16,56 +16,72 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewMwDeleteParams creates a new MwDeleteParams object
-// with the default values initialized.
+// NewMwDeleteParams creates a new MwDeleteParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewMwDeleteParams() *MwDeleteParams {
-	var ()
 	return &MwDeleteParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewMwDeleteParamsWithTimeout creates a new MwDeleteParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewMwDeleteParamsWithTimeout(timeout time.Duration) *MwDeleteParams {
-	var ()
 	return &MwDeleteParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewMwDeleteParamsWithContext creates a new MwDeleteParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewMwDeleteParamsWithContext(ctx context.Context) *MwDeleteParams {
-	var ()
 	return &MwDeleteParams{
-
 		Context: ctx,
 	}
 }
 
 // NewMwDeleteParamsWithHTTPClient creates a new MwDeleteParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewMwDeleteParamsWithHTTPClient(client *http.Client) *MwDeleteParams {
-	var ()
 	return &MwDeleteParams{
 		HTTPClient: client,
 	}
 }
 
-/*MwDeleteParams contains all the parameters to send to the API endpoint
-for the mw delete operation typically these are written to a http.Request
+/*
+MwDeleteParams contains all the parameters to send to the API endpoint
+
+	for the mw delete operation.
+
+	Typically these are written to a http.Request.
 */
 type MwDeleteParams struct {
 
-	/*ID*/
+	// ID.
 	ID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the mw delete params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwDeleteParams) WithDefaults() *MwDeleteParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the mw delete params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwDeleteParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the mw delete params

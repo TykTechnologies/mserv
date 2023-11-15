@@ -6,13 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
-// SessionState session state
+// SessionState SessionState objects represent a current API session, mainly used for rate limiting.
+//
+// There's a data structure that's based on this and it's used for Protocol Buffer support, make sure to update "coprocess/proto/coprocess_session_state.proto" and generate the bindings using: cd coprocess/proto && ./update_bindings.sh
 //
 // swagger:model SessionState
 type SessionState struct {
@@ -29,7 +33,7 @@ type SessionState struct {
 	// apply policies
 	ApplyPolicies []string `json:"apply_policies"`
 
-	// apply policy Id
+	// apply policy ID
 	ApplyPolicyID string `json:"apply_policy_id,omitempty"`
 
 	// certificate
@@ -38,17 +42,24 @@ type SessionState struct {
 	// data expires
 	DataExpires int64 `json:"data_expires,omitempty"`
 
+	// date created
+	// Format: date-time
+	DateCreated strfmt.DateTime `json:"date_created,omitempty"`
+
 	// enable detailed recording
-	EnableDetailedRecording bool `json:"enable_detailed_recording,omitempty"`
+	EnableDetailedRecording bool `json:"enable_detail_recording,omitempty"`
+
+	// enable HTTP signature validation
+	EnableHTTPSignatureValidation bool `json:"enable_http_signature_validation,omitempty"`
 
 	// expires
 	Expires int64 `json:"expires,omitempty"`
 
-	// hmac enabled
-	HmacEnabled bool `json:"hmac_enabled,omitempty"`
+	// h m a c enabled
+	HMACEnabled bool `json:"hmac_enabled,omitempty"`
 
 	// hmac secret
-	HmacSecret string `json:"hmac_secret,omitempty"`
+	HmacSecret string `json:"hmac_string,omitempty"`
 
 	// Id extractor deadline
 	IDExtractorDeadline int64 `json:"id_extractor_deadline,omitempty"`
@@ -62,16 +73,16 @@ type SessionState struct {
 	// last updated
 	LastUpdated string `json:"last_updated,omitempty"`
 
-	// metadata
-	Metadata map[string]string `json:"metadata,omitempty"`
+	// meta data
+	MetaData interface{} `json:"meta_data,omitempty"`
 
-	// oauth client Id
+	// oauth client ID
 	OauthClientID string `json:"oauth_client_id,omitempty"`
 
 	// oauth keys
 	OauthKeys map[string]string `json:"oauth_keys,omitempty"`
 
-	// org Id
+	// org ID
 	OrgID string `json:"org_id,omitempty"`
 
 	// per
@@ -89,6 +100,9 @@ type SessionState struct {
 	// quota renews
 	QuotaRenews int64 `json:"quota_renews,omitempty"`
 
+	// r s a certificate Id
+	RSACertificateID string `json:"rsa_certificate_id,omitempty"`
+
 	// rate
 	Rate float64 `json:"rate,omitempty"`
 
@@ -97,6 +111,12 @@ type SessionState struct {
 
 	// tags
 	Tags []string `json:"tags"`
+
+	// throttle interval
+	ThrottleInterval float64 `json:"throttle_interval,omitempty"`
+
+	// throttle retry limit
+	ThrottleRetryLimit int64 `json:"throttle_retry_limit,omitempty"`
 
 	// basic auth data
 	BasicAuthData *BasicAuthData `json:"basic_auth_data,omitempty"`
@@ -113,6 +133,10 @@ func (m *SessionState) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateAccessRights(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateDateCreated(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -135,7 +159,6 @@ func (m *SessionState) Validate(formats strfmt.Registry) error {
 }
 
 func (m *SessionState) validateAccessRights(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AccessRights) { // not required
 		return nil
 	}
@@ -147,6 +170,11 @@ func (m *SessionState) validateAccessRights(formats strfmt.Registry) error {
 		}
 		if val, ok := m.AccessRights[k]; ok {
 			if err := val.Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("access_rights" + "." + k)
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("access_rights" + "." + k)
+				}
 				return err
 			}
 		}
@@ -156,8 +184,19 @@ func (m *SessionState) validateAccessRights(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SessionState) validateBasicAuthData(formats strfmt.Registry) error {
+func (m *SessionState) validateDateCreated(formats strfmt.Registry) error {
+	if swag.IsZero(m.DateCreated) { // not required
+		return nil
+	}
 
+	if err := validate.FormatOf("date_created", "body", "date-time", m.DateCreated.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SessionState) validateBasicAuthData(formats strfmt.Registry) error {
 	if swag.IsZero(m.BasicAuthData) { // not required
 		return nil
 	}
@@ -166,6 +205,8 @@ func (m *SessionState) validateBasicAuthData(formats strfmt.Registry) error {
 		if err := m.BasicAuthData.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("basic_auth_data")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("basic_auth_data")
 			}
 			return err
 		}
@@ -175,7 +216,6 @@ func (m *SessionState) validateBasicAuthData(formats strfmt.Registry) error {
 }
 
 func (m *SessionState) validateJwtData(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.JwtData) { // not required
 		return nil
 	}
@@ -184,6 +224,8 @@ func (m *SessionState) validateJwtData(formats strfmt.Registry) error {
 		if err := m.JwtData.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("jwt_data")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("jwt_data")
 			}
 			return err
 		}
@@ -193,7 +235,6 @@ func (m *SessionState) validateJwtData(formats strfmt.Registry) error {
 }
 
 func (m *SessionState) validateMonitor(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Monitor) { // not required
 		return nil
 	}
@@ -202,6 +243,112 @@ func (m *SessionState) validateMonitor(formats strfmt.Registry) error {
 		if err := m.Monitor.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("monitor")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("monitor")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this session state based on the context it is used
+func (m *SessionState) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateAccessRights(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateBasicAuthData(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateJwtData(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMonitor(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *SessionState) contextValidateAccessRights(ctx context.Context, formats strfmt.Registry) error {
+
+	for k := range m.AccessRights {
+
+		if val, ok := m.AccessRights[k]; ok {
+			if err := val.ContextValidate(ctx, formats); err != nil {
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *SessionState) contextValidateBasicAuthData(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.BasicAuthData != nil {
+
+		if swag.IsZero(m.BasicAuthData) { // not required
+			return nil
+		}
+
+		if err := m.BasicAuthData.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("basic_auth_data")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("basic_auth_data")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *SessionState) contextValidateJwtData(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.JwtData != nil {
+
+		if swag.IsZero(m.JwtData) { // not required
+			return nil
+		}
+
+		if err := m.JwtData.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("jwt_data")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("jwt_data")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *SessionState) contextValidateMonitor(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Monitor != nil {
+
+		if swag.IsZero(m.Monitor) { // not required
+			return nil
+		}
+
+		if err := m.Monitor.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("monitor")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("monitor")
 			}
 			return err
 		}
@@ -221,6 +368,173 @@ func (m *SessionState) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *SessionState) UnmarshalBinary(b []byte) error {
 	var res SessionState
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// BasicAuthData basic auth data
+//
+// swagger:model BasicAuthData
+type BasicAuthData struct {
+
+	// password
+	Password string `json:"password,omitempty"`
+
+	// hash type
+	HashType HashType `json:"hash_type,omitempty"`
+}
+
+// Validate validates this basic auth data
+func (m *BasicAuthData) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateHashType(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *BasicAuthData) validateHashType(formats strfmt.Registry) error {
+	if swag.IsZero(m.HashType) { // not required
+		return nil
+	}
+
+	if err := m.HashType.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("basic_auth_data" + "." + "hash_type")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("basic_auth_data" + "." + "hash_type")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this basic auth data based on the context it is used
+func (m *BasicAuthData) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateHashType(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *BasicAuthData) contextValidateHashType(ctx context.Context, formats strfmt.Registry) error {
+
+	if swag.IsZero(m.HashType) { // not required
+		return nil
+	}
+
+	if err := m.HashType.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("basic_auth_data" + "." + "hash_type")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("basic_auth_data" + "." + "hash_type")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *BasicAuthData) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *BasicAuthData) UnmarshalBinary(b []byte) error {
+	var res BasicAuthData
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// JWTData j w t data
+//
+// swagger:model JWTData
+type JWTData struct {
+
+	// secret
+	Secret string `json:"secret,omitempty"`
+}
+
+// Validate validates this j w t data
+func (m *JWTData) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this j w t data based on context it is used
+func (m *JWTData) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *JWTData) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *JWTData) UnmarshalBinary(b []byte) error {
+	var res JWTData
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// Monitor monitor
+//
+// swagger:model Monitor
+type Monitor struct {
+
+	// trigger limits
+	TriggerLimits []float64 `json:"trigger_limits"`
+}
+
+// Validate validates this monitor
+func (m *Monitor) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this monitor based on context it is used
+func (m *Monitor) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *Monitor) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *Monitor) UnmarshalBinary(b []byte) error {
+	var res Monitor
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

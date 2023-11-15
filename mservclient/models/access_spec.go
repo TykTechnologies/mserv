@@ -6,11 +6,13 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
+
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
-// AccessSpec access spec
+// AccessSpec AccessSpecs define what URLS a user has access to an what methods are enabled
 //
 // swagger:model AccessSpec
 type AccessSpec struct {
@@ -18,12 +20,17 @@ type AccessSpec struct {
 	// methods
 	Methods []string `json:"methods"`
 
-	// Url
+	// URL
 	URL string `json:"url,omitempty"`
 }
 
 // Validate validates this access spec
 func (m *AccessSpec) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this access spec based on context it is used
+func (m *AccessSpec) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

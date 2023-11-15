@@ -25,35 +25,37 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
 // ClientService is the interface for Client methods
 type ClientService interface {
-	MwAdd(params *MwAddParams, authInfo runtime.ClientAuthInfoWriter) (*MwAddOK, error)
+	MwAdd(params *MwAddParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwAddOK, error)
 
-	MwDelete(params *MwDeleteParams, authInfo runtime.ClientAuthInfoWriter) (*MwDeleteOK, error)
+	MwDelete(params *MwDeleteParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwDeleteOK, error)
 
-	MwFetch(params *MwFetchParams, authInfo runtime.ClientAuthInfoWriter) (*MwFetchOK, error)
+	MwFetch(params *MwFetchParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwFetchOK, error)
 
-	MwFetchBundle(params *MwFetchBundleParams, authInfo runtime.ClientAuthInfoWriter) (*MwFetchBundleOK, error)
+	MwFetchBundle(params *MwFetchBundleParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwFetchBundleOK, error)
 
-	MwListAll(params *MwListAllParams, authInfo runtime.ClientAuthInfoWriter) (*MwListAllOK, error)
+	MwListAll(params *MwListAllParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwListAllOK, error)
 
-	MwUpdate(params *MwUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*MwUpdateOK, error)
+	MwUpdate(params *MwUpdateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwUpdateOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-  MwAdd adds a new middleware if store only field is true it will only be available for download
+MwAdd adds a new middleware if store only field is true then it will only be available for download
 
-  Expects a file bundle in `uploadfile` form field.
+Expects a zipped file bundle in the `uploadfile` form field.
 */
-func (a *Client) MwAdd(params *MwAddParams, authInfo runtime.ClientAuthInfoWriter) (*MwAddOK, error) {
+func (a *Client) MwAdd(params *MwAddParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwAddOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewMwAddParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "mwAdd",
 		Method:             "POST",
 		PathPattern:        "/api/mw",
@@ -65,7 +67,12 @@ func (a *Client) MwAdd(params *MwAddParams, authInfo runtime.ClientAuthInfoWrite
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -80,15 +87,14 @@ func (a *Client) MwAdd(params *MwAddParams, authInfo runtime.ClientAuthInfoWrite
 }
 
 /*
-  MwDelete deletes a middleware specified by id
+MwDelete deletes a middleware specified by id
 */
-func (a *Client) MwDelete(params *MwDeleteParams, authInfo runtime.ClientAuthInfoWriter) (*MwDeleteOK, error) {
+func (a *Client) MwDelete(params *MwDeleteParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwDeleteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewMwDeleteParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "mwDelete",
 		Method:             "DELETE",
 		PathPattern:        "/api/mw/{id}",
@@ -100,7 +106,12 @@ func (a *Client) MwDelete(params *MwDeleteParams, authInfo runtime.ClientAuthInf
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -115,15 +126,14 @@ func (a *Client) MwDelete(params *MwDeleteParams, authInfo runtime.ClientAuthInf
 }
 
 /*
-  MwFetch fetches a middleware specified by id
+MwFetch fetches a middleware specified by id
 */
-func (a *Client) MwFetch(params *MwFetchParams, authInfo runtime.ClientAuthInfoWriter) (*MwFetchOK, error) {
+func (a *Client) MwFetch(params *MwFetchParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwFetchOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewMwFetchParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "mwFetch",
 		Method:             "GET",
 		PathPattern:        "/api/mw/{id}",
@@ -135,7 +145,12 @@ func (a *Client) MwFetch(params *MwFetchParams, authInfo runtime.ClientAuthInfoW
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -150,15 +165,14 @@ func (a *Client) MwFetch(params *MwFetchParams, authInfo runtime.ClientAuthInfoW
 }
 
 /*
-  MwFetchBundle fetches a middleware bundle file specified by id
+MwFetchBundle fetches a middleware bundle file specified by id
 */
-func (a *Client) MwFetchBundle(params *MwFetchBundleParams, authInfo runtime.ClientAuthInfoWriter) (*MwFetchBundleOK, error) {
+func (a *Client) MwFetchBundle(params *MwFetchBundleParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwFetchBundleOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewMwFetchBundleParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "mwFetchBundle",
 		Method:             "GET",
 		PathPattern:        "/api/mw/bundle/{id}",
@@ -170,7 +184,12 @@ func (a *Client) MwFetchBundle(params *MwFetchBundleParams, authInfo runtime.Cli
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -185,15 +204,14 @@ func (a *Client) MwFetchBundle(params *MwFetchBundleParams, authInfo runtime.Cli
 }
 
 /*
-  MwListAll lists all middleware
+MwListAll lists all middleware
 */
-func (a *Client) MwListAll(params *MwListAllParams, authInfo runtime.ClientAuthInfoWriter) (*MwListAllOK, error) {
+func (a *Client) MwListAll(params *MwListAllParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwListAllOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewMwListAllParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "mwListAll",
 		Method:             "GET",
 		PathPattern:        "/api/mw/master/all",
@@ -205,7 +223,12 @@ func (a *Client) MwListAll(params *MwListAllParams, authInfo runtime.ClientAuthI
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -220,17 +243,16 @@ func (a *Client) MwListAll(params *MwListAllParams, authInfo runtime.ClientAuthI
 }
 
 /*
-  MwUpdate updates a middleware specified by id
+MwUpdate updates a middleware specified by id
 
-  Expects a file bundle in `uploadfile` form field.
+Expects a file bundle in `uploadfile` form field.
 */
-func (a *Client) MwUpdate(params *MwUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*MwUpdateOK, error) {
+func (a *Client) MwUpdate(params *MwUpdateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*MwUpdateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewMwUpdateParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "mwUpdate",
 		Method:             "PUT",
 		PathPattern:        "/api/mw/{id}",
@@ -242,7 +264,12 @@ func (a *Client) MwUpdate(params *MwUpdateParams, authInfo runtime.ClientAuthInf
 		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

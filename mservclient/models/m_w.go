@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -71,7 +72,6 @@ func (m *MW) Validate(formats strfmt.Registry) error {
 }
 
 func (m *MW) validateAdded(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Added) { // not required
 		return nil
 	}
@@ -84,7 +84,6 @@ func (m *MW) validateAdded(formats strfmt.Registry) error {
 }
 
 func (m *MW) validateManifest(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Manifest) { // not required
 		return nil
 	}
@@ -93,6 +92,8 @@ func (m *MW) validateManifest(formats strfmt.Registry) error {
 		if err := m.Manifest.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("Manifest")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("Manifest")
 			}
 			return err
 		}
@@ -102,7 +103,6 @@ func (m *MW) validateManifest(formats strfmt.Registry) error {
 }
 
 func (m *MW) validatePlugins(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Plugins) { // not required
 		return nil
 	}
@@ -116,6 +116,72 @@ func (m *MW) validatePlugins(formats strfmt.Registry) error {
 			if err := m.Plugins[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("Plugins" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("Plugins" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this m w based on the context it is used
+func (m *MW) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateManifest(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidatePlugins(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MW) contextValidateManifest(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Manifest != nil {
+
+		if swag.IsZero(m.Manifest) { // not required
+			return nil
+		}
+
+		if err := m.Manifest.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("Manifest")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("Manifest")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MW) contextValidatePlugins(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Plugins); i++ {
+
+		if m.Plugins[i] != nil {
+
+			if swag.IsZero(m.Plugins[i]) { // not required
+				return nil
+			}
+
+			if err := m.Plugins[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("Plugins" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("Plugins" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

@@ -16,52 +16,68 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewMwListAllParams creates a new MwListAllParams object
-// with the default values initialized.
+// NewMwListAllParams creates a new MwListAllParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewMwListAllParams() *MwListAllParams {
-
 	return &MwListAllParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewMwListAllParamsWithTimeout creates a new MwListAllParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewMwListAllParamsWithTimeout(timeout time.Duration) *MwListAllParams {
-
 	return &MwListAllParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewMwListAllParamsWithContext creates a new MwListAllParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewMwListAllParamsWithContext(ctx context.Context) *MwListAllParams {
-
 	return &MwListAllParams{
-
 		Context: ctx,
 	}
 }
 
 // NewMwListAllParamsWithHTTPClient creates a new MwListAllParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewMwListAllParamsWithHTTPClient(client *http.Client) *MwListAllParams {
-
 	return &MwListAllParams{
 		HTTPClient: client,
 	}
 }
 
-/*MwListAllParams contains all the parameters to send to the API endpoint
-for the mw list all operation typically these are written to a http.Request
+/*
+MwListAllParams contains all the parameters to send to the API endpoint
+
+	for the mw list all operation.
+
+	Typically these are written to a http.Request.
 */
 type MwListAllParams struct {
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the mw list all params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwListAllParams) WithDefaults() *MwListAllParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the mw list all params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwListAllParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the mw list all params

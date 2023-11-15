@@ -16,56 +16,72 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewMwFetchParams creates a new MwFetchParams object
-// with the default values initialized.
+// NewMwFetchParams creates a new MwFetchParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewMwFetchParams() *MwFetchParams {
-	var ()
 	return &MwFetchParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewMwFetchParamsWithTimeout creates a new MwFetchParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewMwFetchParamsWithTimeout(timeout time.Duration) *MwFetchParams {
-	var ()
 	return &MwFetchParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewMwFetchParamsWithContext creates a new MwFetchParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewMwFetchParamsWithContext(ctx context.Context) *MwFetchParams {
-	var ()
 	return &MwFetchParams{
-
 		Context: ctx,
 	}
 }
 
 // NewMwFetchParamsWithHTTPClient creates a new MwFetchParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewMwFetchParamsWithHTTPClient(client *http.Client) *MwFetchParams {
-	var ()
 	return &MwFetchParams{
 		HTTPClient: client,
 	}
 }
 
-/*MwFetchParams contains all the parameters to send to the API endpoint
-for the mw fetch operation typically these are written to a http.Request
+/*
+MwFetchParams contains all the parameters to send to the API endpoint
+
+	for the mw fetch operation.
+
+	Typically these are written to a http.Request.
 */
 type MwFetchParams struct {
 
-	/*ID*/
+	// ID.
 	ID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the mw fetch params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwFetchParams) WithDefaults() *MwFetchParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the mw fetch params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwFetchParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the mw fetch params

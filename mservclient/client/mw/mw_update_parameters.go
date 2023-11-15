@@ -16,58 +16,75 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// NewMwUpdateParams creates a new MwUpdateParams object
-// with the default values initialized.
+// NewMwUpdateParams creates a new MwUpdateParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewMwUpdateParams() *MwUpdateParams {
-	var ()
 	return &MwUpdateParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewMwUpdateParamsWithTimeout creates a new MwUpdateParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewMwUpdateParamsWithTimeout(timeout time.Duration) *MwUpdateParams {
-	var ()
 	return &MwUpdateParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewMwUpdateParamsWithContext creates a new MwUpdateParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewMwUpdateParamsWithContext(ctx context.Context) *MwUpdateParams {
-	var ()
 	return &MwUpdateParams{
-
 		Context: ctx,
 	}
 }
 
 // NewMwUpdateParamsWithHTTPClient creates a new MwUpdateParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewMwUpdateParamsWithHTTPClient(client *http.Client) *MwUpdateParams {
-	var ()
 	return &MwUpdateParams{
 		HTTPClient: client,
 	}
 }
 
-/*MwUpdateParams contains all the parameters to send to the API endpoint
-for the mw update operation typically these are written to a http.Request
+/*
+MwUpdateParams contains all the parameters to send to the API endpoint
+
+	for the mw update operation.
+
+	Typically these are written to a http.Request.
 */
 type MwUpdateParams struct {
 
-	/*ID*/
+	// ID.
 	ID string
-	/*Uploadfile*/
+
+	// Uploadfile.
 	UploadFile runtime.NamedReadCloser
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the mw update params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwUpdateParams) WithDefaults() *MwUpdateParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the mw update params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *MwUpdateParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the mw update params
@@ -137,7 +154,6 @@ func (o *MwUpdateParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Regi
 	if err := r.SetPathParam("id", o.ID); err != nil {
 		return err
 	}
-
 	// form file param uploadfile
 	if err := r.SetFileParam("uploadfile", o.UploadFile); err != nil {
 		return err

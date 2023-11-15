@@ -27,7 +27,7 @@ func NewSlaveClient() (*Client, error) {
 
 type Client struct {
 	conf     *StoreConf
-	mservapi *client.Mserv
+	mservapi *client.MservAPI
 	tag      string
 }
 
