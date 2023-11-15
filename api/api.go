@@ -13,10 +13,10 @@ import (
 	"path"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/graymeta/stow"
 	"github.com/graymeta/stow/local"
 	"github.com/graymeta/stow/s3"
-	uuid "github.com/satori/go.uuid"
 
 	"github.com/TykTechnologies/mserv/bundle"
 	config "github.com/TykTechnologies/mserv/conf"
@@ -238,7 +238,7 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 
 	for _, f := range bdl.Manifest.CustomMiddleware.Pre {
 		p := &storage.Plugin{
-			UID:      uuid.NewV4().String(),
+			UID:      uuid.NewString(),
 			FileName: fName,
 			FileRef:  ref,
 			Name:     f.Name,
@@ -250,7 +250,7 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 
 	for _, f := range bdl.Manifest.CustomMiddleware.Post {
 		p := &storage.Plugin{
-			UID:      uuid.NewV4().String(),
+			UID:      uuid.NewString(),
 			FileName: fName,
 			FileRef:  ref,
 			Name:     f.Name,
@@ -262,7 +262,7 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 
 	for _, f := range bdl.Manifest.CustomMiddleware.PostKeyAuth {
 		p := &storage.Plugin{
-			UID:      uuid.NewV4().String(),
+			UID:      uuid.NewString(),
 			FileName: fName,
 			FileRef:  ref,
 			Name:     f.Name,
@@ -274,7 +274,7 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 
 	if bdl.Manifest.CustomMiddleware.AuthCheck.Name != "" {
 		p := &storage.Plugin{
-			UID:      uuid.NewV4().String(),
+			UID:      uuid.NewString(),
 			FileName: fName,
 			FileRef:  ref,
 			Name:     bdl.Manifest.CustomMiddleware.AuthCheck.Name,

@@ -10,9 +10,9 @@ import (
 	"path"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/jpillora/overseer"
-	uuid "github.com/satori/go.uuid"
 )
 
 // UploadFormField is the name of the field/multi-part section which contains the file bytes.
@@ -102,7 +102,7 @@ func (h *HttpServ) AddMW(w http.ResponseWriter, r *http.Request) {
 		restartNeeded = false
 	}
 
-	mw, err := processor(r.Context(), tmpFileLoc, apiID, uuid.NewV4().String())
+	mw, err := processor(r.Context(), tmpFileLoc, apiID, uuid.NewString())
 	if err != nil {
 		h.HandleError(err, w, r)
 		return

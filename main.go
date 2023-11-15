@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jpillora/overseer"
-	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
@@ -198,7 +198,7 @@ func processPlugins(pls []*storage.MW) error {
 			defer location.Close()
 
 			iLog.Info("fetching plugin")
-			tmpDir := path.Join(config.GetConf().Mserv.PluginDir, uuid.NewV4().String())
+			tmpDir := path.Join(config.GetConf().Mserv.PluginDir, uuid.NewString())
 
 			err = os.MkdirAll(tmpDir, os.ModePerm)
 			if err != nil {
