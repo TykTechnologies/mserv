@@ -14,28 +14,24 @@ ENV CGO_ENABLED=0
 
 WORKDIR /go/src/github.com/TykTechnologies/mserv
 
-# Add the sources
 COPY . .
 
-# Compile!
 RUN go build -ldflags="-buildid= -w" -trimpath -v -o /bin/mserv
+RUN mkdir -p /opt/mserv/downloads /opt/mserv/plugins
 
-FROM debian:buster-slim AS runner
+FROM gcr.io/distroless/base:nonroot AS runner
+USER 65532
 
-# Set some shell options for using pipes and such
-SHELL [ "/bin/bash", "-euo", "pipefail", "-c" ]
-
-ENV TYKVERSION 0.1
 ENV TYK_MSERV_CONFIG /etc/mserv/mserv.json
 
 LABEL Description="Tyk MServ service docker image" Vendor="Tyk" Version=$TYKVERSION
 
-RUN mkdir -p /opt/mserv/downloads /opt/mserv/plugins
-
 WORKDIR /opt/mserv
 
-# Bring common CA certificates and binary over
+# Bring common CA certificates and binary over.
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /bin/mserv /opt/mserv/mserv
+COPY --from=builder /opt/mserv/downloads /opt/mserv/downloads
+COPY --from=builder /opt/mserv/plugins /opt/mserv/plugins
 
 ENTRYPOINT [ "/opt/mserv/mserv" ]
