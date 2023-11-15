@@ -17,7 +17,7 @@ require (
 	github.com/graymeta/stow v0.2.8
 	github.com/jpillora/overseer v1.1.6
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/matryer/is v1.4.0
+	github.com/matryer/is v1.4.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/patrickmn/go-cache v2.1.0+incompatible
