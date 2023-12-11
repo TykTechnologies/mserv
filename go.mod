@@ -8,7 +8,7 @@ require (
 	github.com/TykTechnologies/tyk v2.9.3+incompatible
 	github.com/go-openapi/errors v0.20.4
 	github.com/go-openapi/runtime v0.26.0
-	github.com/go-openapi/strfmt v0.21.7
+	github.com/go-openapi/strfmt v0.21.9
 	github.com/go-openapi/swag v0.22.4
 	github.com/go-openapi/validate v0.22.1
 	github.com/golang/protobuf v1.5.3
