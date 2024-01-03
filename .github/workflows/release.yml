@@ -38,7 +38,7 @@ jobs:
           cd ..
 
       - name: Upload ${{ runner.os }} ${{ matrix.arch }} binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mservctl.${{ runner.os }}.${{ matrix.arch }}
           path: bin/mservctl
