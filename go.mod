@@ -27,7 +27,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	go.mongodb.org/mongo-driver v1.13.1
 	golang.org/x/net v0.19.0
-	google.golang.org/grpc v1.59.0
+	google.golang.org/grpc v1.60.1
 )
 
 require (
