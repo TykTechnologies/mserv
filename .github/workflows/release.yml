@@ -34,7 +34,7 @@ jobs:
       - name: Build the CLI binary
         run: |
           cd mservctl
-          go build -o ../bin/mservctl
+          CGO_ENABLED=0 go build -o ../bin/mservctl
           cd ..
 
       - name: Upload ${{ runner.os }} ${{ matrix.arch }} binary

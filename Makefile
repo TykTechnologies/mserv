@@ -69,7 +69,7 @@ test: $(shell find . -type f -iname "*.go")
 # Lint golangci lint
 lint: .golangci.yaml hack/bin/golangci-lint
 > mkdir -p $(@D)
-> hack/bin/golangci-lint run
+> CGO_ENABLED=0 hack/bin/golangci-lint run
 
 hack/bin/golangci-lint:
 > curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
@@ -84,12 +84,12 @@ build: mserv mservctl ## Build server and client binary.
 .PHONY: build
 
 mserv:
-> go build -o bin/mserv
+> CGO_ENABLED=0 go build -o bin/mserv
 .PHONY: mserv
 
 mservctl:
 > cd mservctl
-> go build -o ../bin/mservctl
+> CGO_ENABLED=0 go build -o ../bin/mservctl
 .PHONY: mservctl
 
 start: ## Start runs development environment with mserv and mongo in docker-compose.
