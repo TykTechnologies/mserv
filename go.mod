@@ -6,13 +6,13 @@ require (
 	github.com/TykTechnologies/goverify v0.0.0-20160822133757-7ccc57452ade
 	github.com/TykTechnologies/serverless v0.0.0-20180728220237-1d6be198f145
 	github.com/TykTechnologies/tyk v2.9.3+incompatible
-	github.com/go-openapi/errors v0.20.4
+	github.com/go-openapi/errors v0.21.1
 	github.com/go-openapi/runtime v0.26.0
-	github.com/go-openapi/strfmt v0.21.7
+	github.com/go-openapi/strfmt v0.22.2
 	github.com/go-openapi/swag v0.22.4
 	github.com/go-openapi/validate v0.22.1
 	github.com/golang/protobuf v1.5.3
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/graymeta/stow v0.2.8
 	github.com/jpillora/overseer v1.1.6
@@ -25,7 +25,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
-	go.mongodb.org/mongo-driver v1.13.1
+	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/net v0.19.0
 	google.golang.org/grpc v1.59.0
 )
@@ -101,7 +101,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.14.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
-	golang.org/x/crypto v0.16.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
