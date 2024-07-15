@@ -23,7 +23,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rs/cors v1.10.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.18.2
 	go.mongodb.org/mongo-driver v1.16.0
 	golang.org/x/net v0.27.0
