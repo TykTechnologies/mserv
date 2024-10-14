@@ -1,6 +1,7 @@
 package bundle
 
 import (
+	"archive/zip"
 	"bytes"
 	"crypto/md5"
 	"encoding/base64"
@@ -31,7 +32,7 @@ type Bundle struct {
 	Manifest apidef.BundleManifest
 	Name     string
 	Path     string
-	Data     map[string][]byte
+	Data     []byte
 }
 
 // Verify performs a signature verification on the bundle file.
@@ -134,31 +135,37 @@ type ZipBundleSaver struct{}
 
 // Save implements the main method of the Saver interface. It makes use of archive/zip.
 func (ZipBundleSaver) Save(bundle *Bundle, bundlePath string) error {
-	for fileName, data := range bundle.Data {
-		destPath := filepath.Join(bundlePath, fileName)
+	buf := bytes.NewReader(bundle.Data)
+	reader, err := zip.NewReader(buf, int64(len(bundle.Data)))
+	if err != nil {
+		return err
+	}
 
-		if info, err := os.Stat(destPath); err == nil && info.IsDir() {
+	for _, f := range reader.File {
+		destPath := filepath.Join(bundlePath, f.Name)
+
+		if f.FileHeader.Mode().IsDir() {
 			if err := os.Mkdir(destPath, 0700); err != nil {
 				return err
 			}
-
 			continue
 		}
-
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
 		newFile, err := os.Create(destPath)
 		if err != nil {
 			return err
 		}
-
-		if _, err = newFile.Write(data); err != nil {
+		if _, err = io.Copy(newFile, rc); err != nil {
 			return err
 		}
-
-		if err = newFile.Close(); err != nil {
+		rc.Close()
+		if err := newFile.Close(); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
