@@ -2,6 +2,7 @@
 package api
 
 import (
+	"archive/zip"
 	"bufio"
 	"context"
 	"errors"
@@ -136,19 +137,37 @@ func (a *API) HandleDeleteBundle(ctx context.Context, bundleName string) error {
 }
 
 // HandleNewBundle func creates new bundle and uploads it in to the store.
-func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName string) (*storage.MW, error) {
-	// Read the zip file raw data.
-	data, err := os.ReadFile(filepath.Clean(filePath))
+func (a *API) HandleNewBundle(ctx context.Context, bundlePath, apiID, bundleName string) (*storage.MW, error) {
+	// Unzip the bundle and process each plugin.
+	plugins, err := unzipAndProcessPlugins(bundlePath)
 	if err != nil {
-		return nil, fmt.Errorf("error reading file: %w", err)
+		return nil, fmt.Errorf("error processing plugins: %w", err)
 	}
 
-	log.WithField("path", filePath).Info("read bundle")
+	//var mw *storage.MW
+	//for _, plugin := range plugins {
+	//	mw, err = a.processPlugin(plugin, apiID, bundleName)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
 
-	// Create a bundle object and provide a name.
+	pluginData := make(map[string][]byte)
+	for _, pluginPath := range plugins {
+		data, err := os.ReadFile(filepath.Clean(pluginPath))
+		if err != nil {
+			return nil, fmt.Errorf("error reading file %s: %w", pluginPath, err)
+		}
+
+		log.WithField("path", pluginPath).Info("read plugin path")
+
+		pluginName := filepath.Base(pluginPath)
+		pluginData[pluginName] = data
+	}
+
 	bdl := bundle.Bundle{
-		Data: data,
 		Name: bundleName,
+		Data: pluginData,
 	}
 
 	// Unzip and verify the bundle.
@@ -179,98 +198,74 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 		return nil, fmt.Errorf("get container error: %w", err)
 	}
 
-	// Parse name and path.
-	fName := bdl.Manifest.FileList[0]
-	pluginPath := path.Join(bdl.Path, fName)
+	for _, plugin := range plugins {
+		f, err := os.Open(plugin)
+		if err != nil {
+			return nil, fmt.Errorf("error opening file: %w", err)
+		}
 
-	f, err := os.Open(pluginPath)
-	if err != nil {
-		return nil, fmt.Errorf("error opening file: %w", err)
-	}
+		fInfo, err := f.Stat()
+		if err != nil {
+			return nil, fmt.Errorf("error stat file: %w", err)
+		}
 
-	fInfo, err := f.Stat()
-	if err != nil {
-		return nil, fmt.Errorf("error stat file: %w", err)
-	}
+		r := bufio.NewReader(f)
 
-	r := bufio.NewReader(f)
+		item, err := fCont.Put(fInfo.Name(), r, fInfo.Size(), nil)
+		if err != nil {
+			return nil, fmt.Errorf("error uploading file: %w", err)
+		}
 
-	item, err := fCont.Put(fInfo.Name(), r, fInfo.Size(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("error uploading file: %w", err)
-	}
+		// This is an internal URL, must be interpreted by Stow
+		ref := item.URL().String()
 
-	// This is an internal URL, must be interpreted by Stow
-	ref := item.URL().String()
-
-	// Store the bundle zip file too, because we can use it again
-	bF, err := os.Open(filepath.Clean(filePath))
-	if err != nil {
-		return nil, fmt.Errorf("error opening file: %w", err)
-	}
-
-	bfInfo, err := bF.Stat()
-	if err != nil {
-		return nil, fmt.Errorf("error stat file: %w", err)
-	}
-
-	bundleData, err := fCont.Put(bfInfo.Name(), bufio.NewReader(bF), bfInfo.Size(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("error uploading file: %w", err)
-	}
-
-	// This is an internal URL, must be interpreted by Stow
-	mw.BundleRef = bundleData.URL().String()
-
-	log.Info("completed storage")
-
-	for _, f := range bdl.Manifest.CustomMiddleware.Pre {
 		p := &storage.Plugin{
 			UID:      uuid.NewString(),
-			FileName: fName,
+			FileName: fInfo.Name(),
 			FileRef:  ref,
-			Name:     f.Name,
+			Name:     f.Name(),
 			Type:     coprocess.HookType_Pre,
 		}
 
 		mw.Plugins = append(mw.Plugins, p)
 	}
 
-	for _, f := range bdl.Manifest.CustomMiddleware.Post {
-		p := &storage.Plugin{
-			UID:      uuid.NewString(),
-			FileName: fName,
-			FileRef:  ref,
-			Name:     f.Name,
-			Type:     coprocess.HookType_Post,
-		}
-
-		mw.Plugins = append(mw.Plugins, p)
-	}
-
-	for _, f := range bdl.Manifest.CustomMiddleware.PostKeyAuth {
-		p := &storage.Plugin{
-			UID:      uuid.NewString(),
-			FileName: fName,
-			FileRef:  ref,
-			Name:     f.Name,
-			Type:     coprocess.HookType_PostKeyAuth,
-		}
-
-		mw.Plugins = append(mw.Plugins, p)
-	}
-
-	if bdl.Manifest.CustomMiddleware.AuthCheck.Name != "" {
-		p := &storage.Plugin{
-			UID:      uuid.NewString(),
-			FileName: fName,
-			FileRef:  ref,
-			Name:     bdl.Manifest.CustomMiddleware.AuthCheck.Name,
-			Type:     coprocess.HookType_CustomKeyCheck,
-		}
-
-		mw.Plugins = append(mw.Plugins, p)
-	}
+	// TODO add back in
+	//for _, f := range bdl.Manifest.CustomMiddleware.Post {
+	//	p := &storage.Plugin{
+	//		UID:      uuid.NewString(),
+	//		FileName: fName,
+	//		FileRef:  ref,
+	//		Name:     f.Name,
+	//		Type:     coprocess.HookType_Post,
+	//	}
+	//
+	//	mw.Plugins = append(mw.Plugins, p)
+	//}
+	//
+	//for _, f := range bdl.Manifest.CustomMiddleware.PostKeyAuth {
+	//	p := &storage.Plugin{
+	//		UID:      uuid.NewString(),
+	//		FileName: fName,
+	//		FileRef:  ref,
+	//		Name:     f.Name,
+	//		Type:     coprocess.HookType_PostKeyAuth,
+	//	}
+	//
+	//	mw.Plugins = append(mw.Plugins, p)
+	//}
+	//
+	//if bdl.Manifest.CustomMiddleware.AuthCheck.Name != "" {
+	//	p := &storage.Plugin{
+	//		UID:      uuid.NewString(),
+	//		FileName: fName,
+	//		FileRef:  ref,
+	//		Name:     bdl.Manifest.CustomMiddleware.AuthCheck.Name,
+	//		Type:     coprocess.HookType_CustomKeyCheck,
+	//	}
+	//
+	//	mw.Plugins = append(mw.Plugins, p)
+	//}
 
 	log.Warning("not loading into dispatcher")
 	// a.LoadMWIntoDispatcher(mw, bdl.Path)
@@ -282,7 +277,7 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 	}
 
 	// clean up
-	if err := os.Remove(filepath.Clean(filePath)); err != nil {
+	if err := os.Remove(filepath.Clean(bundlePath)); err != nil {
 		return nil, fmt.Errorf("error removing file: %w", err)
 	}
 
@@ -293,6 +288,50 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 	}
 
 	return &mw, nil
+}
+
+// unzipAndProcessPlugins unzips the bundle and returns the list of plugin paths.
+func unzipAndProcessPlugins(bundlePath string) ([]string, error) {
+	var pluginPaths []string
+
+	r, err := zip.OpenReader(bundlePath)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	extractDir := filepath.Join(os.TempDir(), "extracted-plugins")
+	if err := os.MkdirAll(extractDir, 0755); err != nil {
+		return nil, err
+	}
+
+	for _, f := range r.File {
+		rc, err := f.Open()
+		if err != nil {
+			return nil, err
+		}
+		defer rc.Close()
+
+		extractedFilePath := filepath.Join(extractDir, f.Name)
+
+		if err = os.MkdirAll(filepath.Dir(extractedFilePath), 0755); err != nil {
+			return nil, err
+		}
+
+		outFile, err := os.Create(extractedFilePath)
+		if err != nil {
+			return nil, err
+		}
+		defer outFile.Close()
+
+		if _, err := io.Copy(outFile, rc); err != nil {
+			return nil, err
+		}
+
+		pluginPaths = append(pluginPaths, extractedFilePath)
+	}
+
+	return pluginPaths, nil
 }
 
 // StoreBundleOnly will only store the bundle file into our store, so we can pull it from a gateway if necessary.
