@@ -100,7 +100,7 @@ stop: ## Stop runs development environment with mserv and mongo in docker compos
 
 # Builds multiple Go plugins and moves them into local Tyk instance.
 plugins:
-> @for plugin in plugin.go plugin-2.go; do \
+> @for plugin in plugin_1.go plugin_2.go; do \
 >	docker compose run --rm tyk-plugin-compiler $$plugin _$$(date +%s); \
 > done
 .PHONY: plugins
