@@ -92,19 +92,19 @@ mservctl:
 > CGO_ENABLED=0 go build -o ../bin/mservctl
 .PHONY: mservctl
 
-start: ## Start runs development environment with mserv and mongo in docker-compose.
-> docker-compose up -d
+start: ## Start runs development environment with mserv and mongo in docker compose.
+> docker compose up -d
 
-stop: ## Stop runs development environment with mserv and mongo in docker-compose.
-> docker-compose stop
+stop: ## Stop runs development environment with mserv and mongo in docker compose.
+> docker compose stop
 
 # Builds Go plugin and moves it into local Tyk instance.
 plugin:
-> docker-compose run --rm tyk-plugin-compiler plugin.go _$$(date +%s)
+> docker compose run --rm tyk-plugin-compiler plugin.go _$$(date +%s)
 .PHONY: plugin
 
 bundles:
-> docker-compose run --rm --workdir /plugin-source --entrypoint "/opt/tyk-gateway/tyk bundle build -y -o bundle.zip" tyk-gateway
+> docker compose run --rm --workdir /plugin-source --entrypoint "/opt/tyk-gateway/tyk bundle build -y -o bundle.zip" tyk-gateway
 .PHONY: bundles
 
 integration: ## Runs integration test for mserv and mservctl it needs services running.
