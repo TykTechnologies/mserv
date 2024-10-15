@@ -48,7 +48,7 @@ jobs:
 
     - name: Build and bundle plugins
       run: |
-        make plugin
+        make plugins
         make bundles
 
     - name: Install Venom command line tool

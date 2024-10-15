@@ -1,12 +1,19 @@
 {
   "file_list": [
-    "plugin_v5.2.2_linux_amd64.so"
+    "plugin_v5.2.2_linux_amd64.so",
+    "plugin-2_v5.2.2_linux_amd64.so"
   ],
   "custom_middleware": {
     "pre": [
       {
         "name": "AddFooBarHeader",
         "path": "plugin_v5.2.2_linux_amd64.so",
+        "require_session": false,
+        "raw_body_only": false
+      },
+      {
+        "name": "AddFooBarHeader2",
+        "path": "plugin-2_v5.2.2_linux_amd64.so",
         "require_session": false,
         "raw_body_only": false
       }

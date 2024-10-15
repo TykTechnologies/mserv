@@ -98,10 +98,12 @@ start: ## Start runs development environment with mserv and mongo in docker-comp
 stop: ## Stop runs development environment with mserv and mongo in docker-compose.
 > docker-compose stop
 
-# Builds Go plugin and moves it into local Tyk instance.
-plugin:
-> docker-compose run --rm tyk-plugin-compiler plugin.go _$$(date +%s)
-.PHONY: plugin
+# Builds multiple Go plugins and moves them into local Tyk instance.
+plugins:
+> @for plugin in plugin.go plugin-2.go; do \
+>	docker-compose run --rm tyk-plugin-compiler $$plugin _$$(date +%s); \
+> done
+.PHONY: plugins
 
 bundles:
 > docker-compose run --rm --workdir /plugin-source --entrypoint "/opt/tyk-gateway/tyk bundle build -y -o bundle.zip" tyk-gateway
