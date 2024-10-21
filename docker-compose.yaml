@@ -19,7 +19,7 @@ services:
       - tyk
 
   mongodb:
-    image: mongo:4.0
+    image: mongo:6.0
     restart: always
     environment:
       - AUTH=no

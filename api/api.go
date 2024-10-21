@@ -196,7 +196,7 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 			return nil, fmt.Errorf("error uploading file: %w", err)
 		}
 
-		// This is an internal URL, must be interpreted by Stow
+		// This is an internal URL, must be interpreted by Stow.
 		ref := item.URL().String()
 
 		log.Info("completed storage")
@@ -270,7 +270,6 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 	mw.BundleRef = bundleData.URL().String()
 
 	log.Warning("not loading into dispatcher")
-	// a.LoadMWIntoDispatcher(mw, bdl.Path)
 
 	// store in mongo
 	_, err = a.store.CreateMW(ctx, &mw)

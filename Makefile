@@ -10,7 +10,7 @@ SHELL := bash
 MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --warn-undefined-variables
 
-export TYK_VERSION := v5.2.2
+export TYK_VERSION := v5.6.1
 
 ifeq ($(origin .RECIPEPREFIX), undefined)
   $(error This Make does not support .RECIPEPREFIX. Please use GNU Make 4.0 or later.)

@@ -1,19 +1,19 @@
 {
   "file_list": [
-    "plugin_1_v5.2.2_linux_amd64.so",
-    "plugin_2_v5.2.2_linux_amd64.so"
+    "plugin_1_v5.6.1_linux_amd64.so",
+    "plugin_2_v5.6.1_linux_amd64.so"
   ],
   "custom_middleware": {
     "pre": [
       {
         "name": "AddFooBarHeader",
-        "path": "plugin_1_v5.2.2_linux_amd64.so",
+        "path": "plugin_1_v5.6.1_linux_amd64.so",
         "require_session": false,
         "raw_body_only": false
       },
       {
         "name": "AddHelloWorldHeader",
-        "path": "plugin_2_v5.2.2_linux_amd64.so",
+        "path": "plugin_2_v5.6.1_linux_amd64.so",
         "require_session": false,
         "raw_body_only": false
       }
