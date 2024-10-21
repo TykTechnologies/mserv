@@ -10,7 +10,7 @@ SHELL := bash
 MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --warn-undefined-variables
 
-export TYK_VERSION := v5.2.2
+export TYK_VERSION := v5.6.1
 
 ifeq ($(origin .RECIPEPREFIX), undefined)
   $(error This Make does not support .RECIPEPREFIX. Please use GNU Make 4.0 or later.)
@@ -92,19 +92,21 @@ mservctl:
 > CGO_ENABLED=0 go build -o ../bin/mservctl
 .PHONY: mservctl
 
-start: ## Start runs development environment with mserv and mongo in docker-compose.
-> docker-compose up -d
+start: ## Start runs development environment with mserv and mongo in docker compose.
+> docker compose up -d
 
-stop: ## Stop runs development environment with mserv and mongo in docker-compose.
-> docker-compose stop
+stop: ## Stop runs development environment with mserv and mongo in docker compose.
+> docker compose stop
 
-# Builds Go plugin and moves it into local Tyk instance.
-plugin:
-> docker-compose run --rm tyk-plugin-compiler plugin.go _$$(date +%s)
-.PHONY: plugin
+# Builds multiple Go plugins and moves them into local Tyk instance.
+plugins:
+> @for plugin in plugin_1.go plugin_2.go; do \
+>	docker compose run --rm tyk-plugin-compiler $$plugin _$$(date +%s); \
+> done
+.PHONY: plugins
 
 bundles:
-> docker-compose run --rm --workdir /plugin-source --entrypoint "/opt/tyk-gateway/tyk bundle build -y -o bundle.zip" tyk-gateway
+> docker compose run --rm --workdir /plugin-source --entrypoint "/opt/tyk-gateway/tyk bundle build -y -o bundle.zip" tyk-gateway
 .PHONY: bundles
 
 integration: ## Runs integration test for mserv and mservctl it needs services running.

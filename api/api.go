@@ -168,10 +168,6 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 		Added:    time.Now(),
 	}
 
-	if len(bdl.Manifest.FileList) != 1 {
-		return nil, errors.New("only one plugin file file allowed per bundle")
-	}
-
 	pluginContainerID := fmt.Sprintf(FmtPluginContainer, bundleName)
 
 	fCont, err := getContainer(pluginContainerID)
@@ -179,29 +175,80 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 		return nil, fmt.Errorf("get container error: %w", err)
 	}
 
-	// Parse name and path.
-	fName := bdl.Manifest.FileList[0]
-	pluginPath := path.Join(bdl.Path, fName)
+	// Iterate over plugin files.
+	for _, fName := range bdl.Manifest.FileList {
+		pluginPath := path.Join(bdl.Path, fName)
 
-	f, err := os.Open(pluginPath)
-	if err != nil {
-		return nil, fmt.Errorf("error opening file: %w", err)
+		f, err := os.Open(pluginPath)
+		if err != nil {
+			return nil, fmt.Errorf("error opening file: %w", err)
+		}
+
+		fInfo, err := f.Stat()
+		if err != nil {
+			return nil, fmt.Errorf("error stat file: %w", err)
+		}
+
+		r := bufio.NewReader(f)
+
+		item, err := fCont.Put(fInfo.Name(), r, fInfo.Size(), nil)
+		if err != nil {
+			return nil, fmt.Errorf("error uploading file: %w", err)
+		}
+
+		// This is an internal URL, must be interpreted by Stow.
+		ref := item.URL().String()
+
+		log.Info("completed storage")
+
+		for _, f := range bdl.Manifest.CustomMiddleware.Pre {
+			p := &storage.Plugin{
+				UID:      uuid.NewString(),
+				FileName: fName,
+				FileRef:  ref,
+				Name:     f.Name,
+				Type:     coprocess.HookType_Pre,
+			}
+
+			mw.Plugins = append(mw.Plugins, p)
+		}
+
+		for _, f := range bdl.Manifest.CustomMiddleware.Post {
+			p := &storage.Plugin{
+				UID:      uuid.NewString(),
+				FileName: fName,
+				FileRef:  ref,
+				Name:     f.Name,
+				Type:     coprocess.HookType_Post,
+			}
+
+			mw.Plugins = append(mw.Plugins, p)
+		}
+
+		for _, f := range bdl.Manifest.CustomMiddleware.PostKeyAuth {
+			p := &storage.Plugin{
+				UID:      uuid.NewString(),
+				FileName: fName,
+				FileRef:  ref,
+				Name:     f.Name,
+				Type:     coprocess.HookType_PostKeyAuth,
+			}
+
+			mw.Plugins = append(mw.Plugins, p)
+		}
+
+		if bdl.Manifest.CustomMiddleware.AuthCheck.Name != "" {
+			p := &storage.Plugin{
+				UID:      uuid.NewString(),
+				FileName: fName,
+				FileRef:  ref,
+				Name:     bdl.Manifest.CustomMiddleware.AuthCheck.Name,
+				Type:     coprocess.HookType_CustomKeyCheck,
+			}
+
+			mw.Plugins = append(mw.Plugins, p)
+		}
 	}
-
-	fInfo, err := f.Stat()
-	if err != nil {
-		return nil, fmt.Errorf("error stat file: %w", err)
-	}
-
-	r := bufio.NewReader(f)
-
-	item, err := fCont.Put(fInfo.Name(), r, fInfo.Size(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("error uploading file: %w", err)
-	}
-
-	// This is an internal URL, must be interpreted by Stow
-	ref := item.URL().String()
 
 	// Store the bundle zip file too, because we can use it again
 	bF, err := os.Open(filepath.Clean(filePath))
@@ -222,58 +269,7 @@ func (a *API) HandleNewBundle(ctx context.Context, filePath, apiID, bundleName s
 	// This is an internal URL, must be interpreted by Stow
 	mw.BundleRef = bundleData.URL().String()
 
-	log.Info("completed storage")
-
-	for _, f := range bdl.Manifest.CustomMiddleware.Pre {
-		p := &storage.Plugin{
-			UID:      uuid.NewString(),
-			FileName: fName,
-			FileRef:  ref,
-			Name:     f.Name,
-			Type:     coprocess.HookType_Pre,
-		}
-
-		mw.Plugins = append(mw.Plugins, p)
-	}
-
-	for _, f := range bdl.Manifest.CustomMiddleware.Post {
-		p := &storage.Plugin{
-			UID:      uuid.NewString(),
-			FileName: fName,
-			FileRef:  ref,
-			Name:     f.Name,
-			Type:     coprocess.HookType_Post,
-		}
-
-		mw.Plugins = append(mw.Plugins, p)
-	}
-
-	for _, f := range bdl.Manifest.CustomMiddleware.PostKeyAuth {
-		p := &storage.Plugin{
-			UID:      uuid.NewString(),
-			FileName: fName,
-			FileRef:  ref,
-			Name:     f.Name,
-			Type:     coprocess.HookType_PostKeyAuth,
-		}
-
-		mw.Plugins = append(mw.Plugins, p)
-	}
-
-	if bdl.Manifest.CustomMiddleware.AuthCheck.Name != "" {
-		p := &storage.Plugin{
-			UID:      uuid.NewString(),
-			FileName: fName,
-			FileRef:  ref,
-			Name:     bdl.Manifest.CustomMiddleware.AuthCheck.Name,
-			Type:     coprocess.HookType_CustomKeyCheck,
-		}
-
-		mw.Plugins = append(mw.Plugins, p)
-	}
-
 	log.Warning("not loading into dispatcher")
-	// a.LoadMWIntoDispatcher(mw, bdl.Path)
 
 	// store in mongo
 	_, err = a.store.CreateMW(ctx, &mw)
