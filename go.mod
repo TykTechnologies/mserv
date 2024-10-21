@@ -6,9 +6,9 @@ require (
 	github.com/TykTechnologies/goverify v0.0.0-20160822133757-7ccc57452ade
 	github.com/TykTechnologies/serverless v0.0.0-20180728220237-1d6be198f145
 	github.com/TykTechnologies/tyk v2.9.3+incompatible
-	github.com/go-openapi/errors v0.20.4
+	github.com/go-openapi/errors v0.22.0
 	github.com/go-openapi/runtime v0.26.0
-	github.com/go-openapi/strfmt v0.21.7
+	github.com/go-openapi/strfmt v0.23.0
 	github.com/go-openapi/swag v0.23.0
 	github.com/go-openapi/validate v0.22.1
 	github.com/golang/protobuf v1.5.4
