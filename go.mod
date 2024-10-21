@@ -1,6 +1,6 @@
 module github.com/TykTechnologies/mserv
 
-go 1.20
+go 1.22
 
 require (
 	github.com/TykTechnologies/goverify v0.0.0-20160822133757-7ccc57452ade
