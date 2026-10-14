@@ -18,9 +18,15 @@ Tyk Mserv provides two services to the Tyk Gateway user:
    compile them as golang modules (`.so` files) which can then be pushed live into MServ to provide a dynamic,
    out-of-the-box middleware server.
 
+## Install
+
+Download the `mserv` server and the `mservctl` CLI for your platform from [Releases](https://github.com/TykTechnologies/mserv/releases). Linux and macOS are supported.
+
+To use Mserv with Tyk Cloud, see [Using plugins in Tyk Cloud](https://tyk.io/docs/tyk-cloud/using-plugins). For an overview of Tyk plugins and bundles, see [Plugins](https://tyk.io/docs/api-management/plugins/overview).
+
 ## Pre-requisites
 
-1. A Golang environment (1.8 and over, 1.10 is recommended)
+1. Go 1.22 or later (see `go.mod`)
 2. `tyk-cli`
 
 To get Tyk CLI:
@@ -37,11 +43,12 @@ differences which completely break the plugin import.
 The best way to do this is to ensure that both Mserv and the plugin are built against the same version. To do that:
 
 ```shell
-go get TykTechnologies/mserv
-cd $GOPATH/TykTechnologies/mserv/build
+git clone --branch v1.1.0 https://github.com/TykTechnologies/mserv.git
+cd mserv
+mkdir myplugin && cd myplugin
 ```
 
-Then create your plugin in this directory, for example, assume we want a "pre-auth" middleware hook, create a file
+Replace `v1.1.0` with the Mserv version that you run. Then create your plugin in this directory, for example, assume we want a "pre-auth" middleware hook, create a file
 called `prehook.go`:
 
 ```go
@@ -89,7 +96,7 @@ Now you can create an unsigned bundle using:
 tyk-cli bundle build --output bundle.zip -y
 ```
 
-You should now see a `bundle.zip` file. You can puh this to Mserv using `curl`:
+You should now see a `bundle.zip` file. You can push this to Mserv using `curl`:
 
 ```shell
 curl -F "uploadfile=@bundle.zip" "http://localhost:8989/api/mw?api_id={API-ID}"
