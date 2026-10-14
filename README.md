@@ -43,12 +43,12 @@ differences which completely break the plugin import.
 The best way to do this is to ensure that both Mserv and the plugin are built against the same version. To do that:
 
 ```shell
-git clone --branch v1.1.0 https://github.com/TykTechnologies/mserv.git
+git clone https://github.com/TykTechnologies/mserv.git
 cd mserv
 mkdir myplugin && cd myplugin
 ```
 
-Replace `v1.1.0` with the Mserv version that you run. Then create your plugin in this directory, for example, assume we want a "pre-auth" middleware hook, create a file
+Then create your plugin in this directory, for example, assume we want a "pre-auth" middleware hook, create a file
 called `prehook.go`:
 
 ```go
